@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Read(//d//**)"
+    ],
+    "additionalDirectories": [
+      "d:\\VS code\\Diplom\\frontend\\src"
+    ]
+  }
+}

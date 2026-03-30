@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /d/Diplom -type d ! -path */node_modules/* ! -path */__pycache__/*)"
+    ]
+  }
+}

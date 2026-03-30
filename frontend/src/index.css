@@ -1,0 +1,73 @@
+:root {
+  /* Light theme (default): cream + amber */
+  --c-bg: #EDE8D8;
+  --c-surface: #F9F5EC;
+  --c-surface2: #E8E2D0;
+  --c-border: #D4CFBF;
+  --c-border2: #BAB4A4;
+  --c-text: #27374D;
+  --c-text2: #526D82;
+  --c-text3: #9DB2BF;
+  --c-accent: #DFA06E;
+  --c-accent-h: #C98A56;
+  --c-accent-glow: rgba(223, 160, 110, 0.25);
+  --c-accent-dim: rgba(223, 160, 110, 0.12);
+  --c-own: #F5E6D8;
+  --c-green: #2E8B57;
+  --c-red: #C0524A;
+  --c-log-bg: rgba(39, 55, 77, 0.06);
+}
+
+[data-theme="dark"] {
+  /* Dark theme: #27374D / #526D82 / #9DB2BF + amber */
+  --c-bg: #27374D;
+  --c-surface: #304560;
+  --c-surface2: #3A5472;
+  --c-border: #445F7D;
+  --c-border2: #526D82;
+  --c-text: #EBF1F5;
+  --c-text2: #9DB2BF;
+  --c-text3: #6E92A4;
+  --c-accent: #DFA06E;
+  --c-accent-h: #C98A56;
+  --c-accent-glow: rgba(223, 160, 110, 0.28);
+  --c-accent-dim: rgba(223, 160, 110, 0.14);
+  --c-own: #3D2A1A;
+  --c-green: #4CAF7D;
+  --c-red: #C0524A;
+  --c-log-bg: rgba(157, 178, 191, 0.07);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--c-border2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-text3);
+}
