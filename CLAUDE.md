@@ -41,7 +41,7 @@ npm run lint     # eslint
 - `models/` — SQLAlchemy ORM: `User`, `Room`+`RoomMember`+`RoomType`+`MemberRole`, `Message`
 - `schemas/` — Pydantic модели для валидации HTTP запросов/ответов
 - `services/` — бизнес-логика: `auth.py` (JWT+bcrypt), `room.py` (CRUD), `deps.py` (FastAPI dependency `get_current_user`)
-- `routers/` — HTTP endpoints: `auth.py` (register/login), `rooms.py` (CRUD + join by invite code)
+- `routers/` — HTTP endpoints: `auth.py` (register/login), `rooms.py` (CRUD + join by invite code), `admin.py` (управление пользователями и комнатами), `users.py` (профиль, аватар)
 - `websocket/` — real-time слой (см. ниже)
 
 **WebSocket (`websocket/`):**
@@ -62,15 +62,15 @@ npm run lint     # eslint
 
 ### Frontend (`frontend/src/`)
 
-**Роутинг** (`App.jsx`): `/auth` → `AuthPage`, `/` → `LobbyPage` (private), `/room/:id` → `RoomPage` (private).
+**Роутинг** (`App.jsx`): `/auth` → `AuthPage`, `/` → `LobbyPage` (private), `/room/:id` → `RoomPage` (private), `/profile` → `ProfilePage` (private).
 
 **Стейт:**
 - `store/auth.js` — Zustand: token + user в localStorage, `login(token, user)` / `logout()`
 - `store/theme.js` — Zustand: dark/light тема, `toggle()` пишет в localStorage и `document.documentElement.setAttribute("data-theme", ...)`
 
-**API:** `api.js` — axios instance на `http://localhost:8000`, interceptor добавляет `Authorization: Bearer {token}`.
+**API:** `api.js` — axios instance на `VITE_BACKEND_URL || "http://localhost:8000"`, interceptor добавляет `Authorization: Bearer {token}`.
 
-**Тема:** CSS-переменные (`--c-bg`, `--c-surface`, `--c-accent` и др.) в `index.css`. `[data-theme="light"]` переопределяет переменные.
+**Тема:** CSS-переменные (`--c-bg`, `--c-surface`, `--c-accent` и др.) в `index.css`. По умолчанию — светлая тема (`:root`), `[data-theme="dark"]` переопределяет переменные на тёмные.
 
 **RoomPage** (`pages/RoomPage.jsx`) — основная сложность:
 - Rutube embed iframe управляется через `postMessage` API (`player:play`, `player:pause`, `player:setCurrentTime`, `player:mute` и др.)
@@ -95,7 +95,7 @@ npm run lint     # eslint
 
 **Сервер → клиент:**
 ```js
-{ type: "init", chat_history, player_state, online_user_ids, queue, timeline }
+{ type: "init", chat_history, player_state, online_user_ids, online_users: [{id, username, avatar}], queue, timeline }
 { type: "chat", id, user_id, username, text, created_at }
 { type: "player", action, position, video_id, is_playing, played_at, by }
 { type: "reaction", emoji, user_id, username }
