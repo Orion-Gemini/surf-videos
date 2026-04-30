@@ -1,3 +1,9 @@
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 :root {
   /* Light theme (default): cream + amber */
   --c-bg: #EDE8D8;

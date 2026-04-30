@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import engine, Base, AsyncSessionLocal
 import app.models  # noqa: F401 — регистрируем модели
-from app.routers import auth, rooms, admin
+from app.routers import auth, rooms, admin, users
 from app.websocket.router import router as ws_router
 
 app = FastAPI(title="Surf Videos API", version="1.0.0")
@@ -19,6 +19,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(rooms.router)
 app.include_router(admin.router)
+app.include_router(users.router)
 app.include_router(ws_router)
 
 
@@ -34,6 +35,14 @@ async def startup():
         if result.scalar() == 0:
             await conn.execute(text(
                 "ALTER TABLE users ADD COLUMN is_superuser TINYINT(1) NOT NULL DEFAULT 0"
+            ))
+        result2 = await conn.execute(text(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'avatar'"
+        ))
+        if result2.scalar() == 0:
+            await conn.execute(text(
+                "ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL"
             ))
     await ensure_superuser()
 

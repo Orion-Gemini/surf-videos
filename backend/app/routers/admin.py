@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models.user import User
-from app.models.room import Room, RoomMember
+from app.models.room import Room
 from app.services.deps import get_superuser
 from app.services.auth import hash_password
 from app.config import settings
@@ -30,6 +30,7 @@ class RoomAdminOut(BaseModel):
     type: str
     owner_id: int
     owner_username: str
+    online_count: int = 0
 
     model_config = {"from_attributes": True}
 
@@ -42,6 +43,10 @@ class CreateAdminIn(BaseModel):
 
 class PromoteIn(BaseModel):
     is_superuser: bool
+
+
+class BanIn(BaseModel):
+    is_active: bool
 
 
 @router.get("/users", response_model=list[UserAdminOut])
@@ -72,6 +77,45 @@ async def promote_user(
     await db.commit()
     await db.refresh(user)
     return user
+
+
+@router.patch("/users/{user_id}/ban", response_model=UserAdminOut)
+async def ban_user(
+    user_id: int,
+    data: BanIn,
+    db: AsyncSession = Depends(get_db),
+    current: User = Depends(get_superuser),
+):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    if user.id == current.id:
+        raise HTTPException(status_code=400, detail="Нельзя заблокировать самого себя")
+    if user.username == settings.SUPERUSER_USERNAME:
+        raise HTTPException(status_code=403, detail="Нельзя заблокировать суперадмина")
+    user.is_active = data.is_active
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current: User = Depends(get_superuser),
+):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    if user.id == current.id:
+        raise HTTPException(status_code=400, detail="Нельзя удалить самого себя")
+    if user.username == settings.SUPERUSER_USERNAME:
+        raise HTTPException(status_code=403, detail="Нельзя удалить суперадмина")
+    await db.delete(user)
+    await db.commit()
 
 
 @router.post("/users", response_model=UserAdminOut, status_code=status.HTTP_201_CREATED)
@@ -116,6 +160,7 @@ async def list_all_rooms(
             type=r.type.value,
             owner_id=r.owner_id,
             owner_username=r.owner.username,
+            online_count=len(manager.rooms.get(r.id, {})),
         )
         for r in rooms
     ]

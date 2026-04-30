@@ -1,0 +1,377 @@
+.page {
+  min-height: 100vh;
+  background: var(--c-bg);
+  color: var(--c-text);
+  animation: pageIn 0.35s ease;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pageOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+.pageFadeOut {
+  animation: pageOut 0.22s ease forwards;
+  pointer-events: none;
+}
+
+/* ── Шапка ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 32px;
+  min-height: 64px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back {
+  background: none;
+  border: none;
+  color: var(--c-text2);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.back:hover {
+  color: var(--c-text);
+  background: var(--c-surface2);
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+
+.headerRight {
+  margin-left: auto;
+}
+
+.btnTheme {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text2);
+  font-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.btnTheme:hover {
+  background: var(--c-surface2);
+  border-color: var(--c-border2);
+}
+
+/* ── Основной контент ── */
+.main {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Карточка пользователя ── */
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.avatarWrap {
+  flex-shrink: 0;
+  position: relative;
+  width: 72px;
+  height: 72px;
+  cursor: pointer;
+}
+
+.avatarInput {
+  display: none;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.02em;
+  box-shadow: 0 4px 16px var(--c-accent-glow);
+}
+
+.avatarImg {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 4px 16px var(--c-accent-glow);
+}
+
+.avatarOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.avatarWrap:hover .avatarOverlay {
+  opacity: 1;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.usernameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.username {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--c-text);
+}
+
+.badgeAdmin {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(223, 160, 110, 0.15);
+  color: var(--c-accent);
+  border: 1px solid rgba(223, 160, 110, 0.3);
+}
+
+.email {
+  margin: 0;
+  font-size: 14px;
+  color: var(--c-text2);
+}
+
+.since {
+  margin: 0;
+  font-size: 12px;
+  color: var(--c-text3);
+}
+
+/* ── Статистика ── */
+.statsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.statCard {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.statCard:hover {
+  border-color: var(--c-accent);
+  box-shadow: 0 4px 16px var(--c-accent-glow);
+}
+
+.statNumber {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--c-accent);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--c-text2);
+  text-align: center;
+}
+
+/* ── Секция смены пароля ── */
+.section {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  overflow: hidden;
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+.sectionToggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: none;
+  border: none;
+  color: var(--c-text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sectionToggle:hover {
+  background: var(--c-surface2);
+}
+
+.toggleIcon {
+  font-size: 11px;
+  color: var(--c-text3);
+}
+
+.passForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 22px 22px;
+  border-top: 1px solid var(--c-border);
+  padding-top: 18px;
+}
+
+.input {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface2);
+  color: var(--c-text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input::placeholder {
+  color: var(--c-text3);
+}
+
+.input:focus {
+  border-color: var(--c-accent);
+}
+
+.btn {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 2px;
+}
+
+.btn:hover {
+  background: var(--c-accent-h);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--c-red);
+  font-size: 13px;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(248, 113, 113, 0.1);
+  border-radius: 8px;
+}
+
+.success {
+  color: #4CAF50;
+  font-size: 13px;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+}
+
+/* ── Кнопка выхода ── */
+.btnLogout {
+  padding: 13px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(248, 113, 113, 0.35);
+  background: transparent;
+  color: var(--c-red);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.btnLogout:hover {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: var(--c-red);
+}
+
+.btnLogout:active {
+  transform: scale(0.98);
+}
+
+.hint {
+  color: var(--c-text3);
+  font-size: 14px;
+}

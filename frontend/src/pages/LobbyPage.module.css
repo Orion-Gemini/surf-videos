@@ -2,6 +2,21 @@
   min-height: 100vh;
   background: var(--c-bg);
   color: var(--c-text);
+  animation: pageIn 0.35s ease;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pageOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+.pageFadeOut {
+  animation: pageOut 0.22s ease forwards;
+  pointer-events: none;
 }
 
 .header {
@@ -49,10 +64,22 @@
   gap: 10px;
 }
 
-.username {
+.btnUsername {
+  background: none;
+  border: 1.5px solid var(--c-border);
   color: var(--c-text2);
   font-size: 14px;
   font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.btnUsername:hover {
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+  background: var(--c-accent-dim);
 }
 
 .main {
@@ -77,12 +104,14 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 3px 10px var(--c-accent-glow);
 }
 
 .btn:hover {
   background: var(--c-accent-h);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px var(--c-accent-glow);
 }
 
 .btn:active {
@@ -255,14 +284,20 @@
   border-radius: 14px;
   padding: 20px 22px;
   cursor: pointer;
-  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+  transition: border-color 0.25s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  animation: cardFadeIn 0.35s ease both;
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .roomCard:hover {
   border-color: var(--c-accent);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px var(--c-accent-glow);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px var(--c-accent-glow);
 }
 
 .roomName {
@@ -284,6 +319,24 @@
 .roomMeta span:first-child {
   color: #4CAF50;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.onlineDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4CAF50;
+  flex-shrink: 0;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
 }
 
 .roomMetaRight {
@@ -369,6 +422,17 @@
   border-bottom: 1px solid var(--c-border);
   background: var(--c-surface);
   padding: 0 32px;
+  position: relative;
+}
+
+.tabIndicator {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  background: var(--c-accent);
+  border-radius: 2px 2px 0 0;
+  transition: left 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
 }
 
 .tab {
@@ -379,13 +443,12 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.2s, background 0.2s;
 }
 
 .tab:hover {
   color: var(--c-text);
+  background: var(--c-surface2);
 }
 
 .tabActive {
@@ -396,8 +459,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  border-bottom: 2px solid var(--c-accent);
-  margin-bottom: -1px;
+  transition: color 0.2s;
 }
 
 /* Room card with delete button */
@@ -461,11 +523,163 @@
   color: var(--c-red);
 }
 
+.roomCard:has(.btnDelete:hover) .roomCardInner {
+  animation: shake 0.5s ease infinite;
+}
+
 /* Admin panel */
 .adminPanel {
   display: flex;
   flex-direction: column;
   gap: 40px;
+}
+
+/* Stats row */
+.adminStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.adminStatCard {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.adminStatCard:hover {
+  border-color: var(--c-accent);
+  box-shadow: 0 4px 16px var(--c-accent-glow);
+}
+
+.adminStatOnline {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.adminStatOnline:hover {
+  border-color: rgba(76, 175, 80, 0.6);
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.15);
+}
+
+.adminStatValue {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adminStatOnline .adminStatValue {
+  color: #4CAF50;
+}
+
+.adminStatLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-text2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Search input */
+.adminSearch {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface2);
+  color: var(--c-text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.adminSearch::placeholder { color: var(--c-text3); }
+.adminSearch:focus { border-color: var(--c-accent); }
+
+/* Grid columns per table type */
+.adminTableHead.adminRowUsers,
+.adminTableRow.adminRowUsers {
+  grid-template-columns: 48px 190px 1fr 130px 230px;
+}
+
+.adminTableHead.adminRowRooms,
+.adminTableRow.adminRowRooms {
+  grid-template-columns: 48px 1fr 70px 100px 130px 180px;
+}
+
+/* Avatar initials in user table */
+.adminUserCell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.adminAvatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-accent-dim);
+  border: 1.5px solid rgba(223, 160, 110, 0.3);
+  color: var(--c-accent);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Online cell in rooms table */
+.adminOnlineCell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.adminDash {
+  color: var(--c-text3);
+  font-weight: 400;
+}
+
+/* Empty state inside table */
+.adminEmpty {
+  padding: 16px;
+  color: var(--c-text3);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Enter room button */
+.btnEnter {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(76, 175, 80, 0.4);
+  background: transparent;
+  color: #4CAF50;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btnEnter:hover {
+  background: rgba(76, 175, 80, 0.1);
 }
 
 .adminSection {
@@ -505,7 +719,6 @@
 
 .adminTableHead {
   display: grid;
-  grid-template-columns: 52px 140px 1fr 140px 160px;
   gap: 0;
   padding: 10px 16px;
   background: var(--c-surface2);
@@ -519,7 +732,6 @@
 
 .adminTableRow {
   display: grid;
-  grid-template-columns: 52px 140px 1fr 140px 160px;
   gap: 0;
   padding: 12px 16px;
   border-bottom: 1px solid var(--c-border);
@@ -616,6 +828,27 @@
   border: 1px solid rgba(248, 113, 113, 0.2);
 }
 
+/* Banned row */
+.adminRowBanned {
+  opacity: 0.6;
+  background: rgba(248, 113, 113, 0.04);
+}
+
+/* Badges */
+.badgeBanned {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--c-red);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+
 /* Admin action buttons */
 .btnPromote {
   padding: 5px 12px;
@@ -650,3 +883,238 @@
 .btnDemote:hover {
   background: rgba(248, 113, 113, 0.1);
 }
+
+.btnBan {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(251, 146, 60, 0.5);
+  background: transparent;
+  color: #fb923c;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.btnBan:hover {
+  background: rgba(251, 146, 60, 0.12);
+}
+
+.btnUnban {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(74, 222, 128, 0.4);
+  background: transparent;
+  color: #4ade80;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btnUnban:hover {
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.btnDeleteUser {
+  padding: 5px 9px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(248, 113, 113, 0.35);
+  background: transparent;
+  color: var(--c-red);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.btnDeleteUser:hover {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.6);
+}
+
+/* Shake animation for delete button */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-3px); }
+  75%       { transform: translateX(3px); }
+}
+
+/* Confirm modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlayIn 0.2s ease;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+  animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.88) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modalIcon {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0 0 8px;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.modalMessage {
+  font-size: 14px;
+  color: var(--c-text2);
+  margin: 0 0 24px;
+  text-align: center;
+  line-height: 1.55;
+}
+
+.modalActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnDanger {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  background: var(--c-red);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btnDanger:hover {
+  opacity: 0.85;
+}
+
+.btnDanger:active {
+  transform: scale(0.97);
+}
+
+.modalCancel {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1.5px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text2);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.modalCancel:hover {
+  border-color: var(--c-border2);
+  color: var(--c-text);
+}
+
+/* ── Admin panel animations ──────────────────────────────────────────────── */
+
+/* Stat cards: волна появления снизу */
+@keyframes statIn {
+  from { opacity: 0; transform: translateY(22px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.adminStatCard:nth-child(1) { animation: statIn 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both 0ms; }
+.adminStatCard:nth-child(2) { animation: statIn 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both 80ms; }
+.adminStatCard:nth-child(3) { animation: statIn 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both 160ms; }
+.adminStatCard:nth-child(4) { animation: statIn 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both 240ms; }
+
+/* Table rows: каскадное появление слева */
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.adminTableRow {
+  animation: rowIn 0.28s ease both;
+}
+
+/* Button sweep: световой блик прокатывается при hover */
+@keyframes btnSweep {
+  from { left: -75%; }
+  to   { left: 130%; }
+}
+
+.btnPromote,
+.btnDemote,
+.btnEnter,
+.btnBan {
+  position: relative;
+  overflow: hidden;
+}
+
+.btnPromote::after,
+.btnDemote::after,
+.btnEnter::after,
+.btnBan::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transform: skewX(-15deg);
+  pointer-events: none;
+}
+
+.btnPromote:hover::after,
+.btnDemote:hover::after,
+.btnEnter:hover::after,
+.btnBan:hover::after {
+  animation: btnSweep 0.5s ease forwards;
+}
+
+/* Feature icons: лёгкое покачивание как на волне */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+.featureIcon {
+  display: inline-block;
+  animation: float 3.2s ease-in-out infinite;
+}
+
+.featureCard:nth-child(2) .featureIcon { animation-delay: 0.6s; }
+.featureCard:nth-child(3) .featureIcon { animation-delay: 1.2s; }

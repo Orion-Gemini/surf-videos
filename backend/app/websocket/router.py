@@ -12,6 +12,9 @@ from app.websocket.handlers import (
     handle_player_event,
     handle_reaction,
     handle_queue_event,
+    handle_ready_event,
+    handle_countdown_event,
+    handle_moderation_event,
     send_initial_state,
 )
 
@@ -71,13 +74,20 @@ async def room_websocket(
             "type": "user_joined",
             "user_id": user.id,
             "username": user.username,
+            "avatar": user.avatar,
         }, exclude_user_id=user.id)
 
         # Отправляем начальное состояние новому участнику
         await send_initial_state(room_id, user, db)
 
         while True:
-            event = await ws.receive_json()
+            try:
+                event = await ws.receive_json()
+            except WebSocketDisconnect:
+                raise
+            except Exception:
+                # Невалидный JSON — пропускаем без разрыва соединения
+                continue
             event_type = event.get("type")
 
             if event_type == "chat":
@@ -88,6 +98,12 @@ async def room_websocket(
                 await handle_reaction(event, room_id, user, db)
             elif event_type == "queue":
                 await handle_queue_event(event, room_id, user, db)
+            elif event_type == "ready":
+                await handle_ready_event(event, room_id, user, db)
+            elif event_type == "countdown":
+                await handle_countdown_event(event, room_id, user, db)
+            elif event_type == "moderation":
+                await handle_moderation_event(event, room_id, user, db)
 
     except WebSocketDisconnect:
         pass

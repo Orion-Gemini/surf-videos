@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Integer, String, Boolean, DateTime, ForeignKey, Enum
+from sqlalchemy import Integer, String, Boolean, DateTime, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import enum
@@ -35,6 +35,7 @@ class Room(Base):
 
 class RoomMember(Base):
     __tablename__ = "room_members"
+    __table_args__ = (UniqueConstraint("room_id", "user_id", name="uq_room_member"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     room_id: Mapped[int] = mapped_column(Integer, ForeignKey("rooms.id"), nullable=False)

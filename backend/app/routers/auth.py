@@ -39,5 +39,8 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
     if not user or not await verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Аккаунт заблокирован")
+
     token = create_access_token({"sub": str(user.id)})
     return TokenOut(access_token=token, user=UserOut.model_validate(user))

@@ -18,7 +18,7 @@ export function useWebSocket(roomId, token, handlers) {
 
     let cancelled = false;
     const wsUrl = BACKEND_URL.replace(/^http/, "ws");
-    const ws = new WebSocket(`${wsUrl}/ws/rooms/${roomId}?token=${token}`);
+    const ws = new WebSocket(`${wsUrl}/ws/rooms/${roomId}?token=${encodeURIComponent(token)}`);
     wsRef.current = ws;
 
     ws.onopen = () => { if (!cancelled) handlersRef.current.onOpen?.(); };
@@ -35,9 +35,9 @@ export function useWebSocket(roomId, token, handlers) {
     return () => {
       cancelled = true;
       if (ws.readyState === WebSocket.CONNECTING) {
-        ws.onopen = () => ws.close();
+        ws.onopen = () => ws.close(1000);
       } else {
-        ws.close();
+        ws.close(1000);
       }
     };
   }, [roomId, token]);

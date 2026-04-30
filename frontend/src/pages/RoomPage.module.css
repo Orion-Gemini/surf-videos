@@ -177,6 +177,14 @@
   border: none;
 }
 
+/* Overlay пока iframe ищет нужную позицию после autoplay */
+.syncOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background: #000;
+}
+
 /* Прозрачный слой поверх iframe — блокирует нативные контролы Rutube */
 .playerOverlay {
   position: absolute;
@@ -200,6 +208,180 @@
   opacity: 0.35;
   pointer-events: none;
   user-select: none;
+}
+
+/* ── Зал ожидания ── */
+.waitingOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.waitingCard {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 32px 36px;
+  max-width: 340px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: cardPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardPop {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.waitingIcon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.waitingTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-text);
+  text-align: center;
+}
+
+.waitingHint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--c-text2);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.readyList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-height: 32px;
+}
+
+.readyUser {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--c-text);
+  padding: 4px 0;
+}
+
+.readyCheck {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.readyPending {
+  color: var(--c-text3);
+  font-style: italic;
+}
+
+.waitingCounter {
+  font-size: 12px;
+  color: var(--c-text3);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.btnReady {
+  margin-top: 4px;
+  padding: 11px 28px;
+  border-radius: 12px;
+  border: none;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.12s;
+  animation: btnPulse 1.8s ease-in-out 0.5s 2;
+}
+
+.btnReady:hover {
+  background: var(--c-accent-h);
+  transform: scale(1.04);
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--c-accent-glow); }
+  50%       { box-shadow: 0 0 0 8px transparent; }
+}
+
+.readyConfirm {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--c-text3);
+  font-style: italic;
+  animation: dots 1.4s infinite;
+}
+
+@keyframes dots {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.btnStartAll {
+  margin-top: 4px;
+  padding: 11px 28px;
+  border-radius: 12px;
+  border: none;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.12s;
+}
+
+.btnStartAll:hover {
+  background: var(--c-accent-h);
+  transform: scale(1.04);
+}
+
+/* ── Обратный отсчёт ── */
+.countdownOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 21;
+}
+
+.countdownNum {
+  font-size: 120px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  animation: numPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-shadow: 0 0 60px var(--c-accent-glow), 0 4px 24px rgba(0,0,0,0.5);
+}
+
+@keyframes numPop {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 /* Оверлей первого входа */
@@ -232,13 +414,20 @@
   justify-content: center;
   font-size: 30px;
   padding-left: 5px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
   box-shadow: 0 8px 28px var(--c-accent-glow);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 8px 28px var(--c-accent-glow); }
+  50%       { box-shadow: 0 8px 42px var(--c-accent-glow); }
 }
 
 .joinOverlay:hover .joinIcon {
-  transform: scale(1.1);
-  box-shadow: 0 12px 36px var(--c-accent-glow);
+  transform: scale(1.12);
+  box-shadow: 0 14px 40px var(--c-accent-glow);
+  animation: none;
 }
 
 .joinText {
@@ -410,6 +599,388 @@
   width: 80px !important;
 }
 
+/* ── Правый блок контролов ── */
+.controlsRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Кнопка режима кинотеатра ── */
+.cinemaBtn {
+  background: none;
+  border: 1px solid var(--c-border);
+  color: var(--c-text2);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.cinemaBtn:hover {
+  color: var(--c-accent);
+  background: var(--c-surface2);
+  border-color: var(--c-accent);
+}
+
+/* Иконка: прямоугольник (широкоформатный экран) */
+.cinemaBtnIcon {
+  display: block;
+  width: 15px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+/* Иконка в активном состоянии: внутренний прямоугольник */
+.cinemaBtnIconExit {
+  display: block;
+  width: 15px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+/* ── Режим кинотеатра ── */
+.cinemaMode .header {
+  display: none;
+}
+
+.cinemaMode .layout {
+  height: 100vh;
+}
+
+.cinemaMode .playerSection {
+  padding: 6px;
+  gap: 0;
+  position: relative;
+}
+
+.cinemaMode .chatSection {
+  width: 280px;
+  background: var(--c-surface);
+}
+
+.cinemaMode .videoInputRow {
+  display: none;
+}
+
+/* ── Перехватчик мыши в cinema/fullscreen — не даёт курсору уйти в iframe ── */
+.cinemaMouseCatcher {
+  position: absolute;
+  inset: 0;
+  z-index: 13; /* выше playerOverlay (10), ниже controls (14,15) */
+  pointer-events: all;
+  cursor: default;
+}
+
+/* Контролы становятся оверлеем поверх видео в cinema/fullscreen */
+.cinemaMode .reactionBar {
+  position: absolute;
+  bottom: 82px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  background: transparent;
+  border: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  white-space: nowrap;
+}
+
+.cinemaMode .customControls {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  z-index: 14;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 65%, transparent 100%);
+  border: none;
+  box-shadow: none;
+  border-radius: 0 0 12px 12px;
+  padding: 36px 20px 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+/* Показываем при движении мыши */
+.cinemaMode .showControls .reactionBar,
+.cinemaMode .showControls .customControls {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Адаптация цветов под тёмный градиент */
+.cinemaMode .customControls .timeDisplay,
+.cinemaMode .customControls .viewerStatus {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cinemaMode .customControls .syncBtn {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cinemaMode .customControls .syncBtn:hover {
+  color: var(--c-accent);
+  border-color: var(--c-accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cinemaMode .customControls .volumeIcon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cinemaMode .customControls .cinemaBtn,
+.cinemaMode .customControls .fullscreenBtn {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cinemaMode .customControls .cinemaBtn:hover,
+.cinemaMode .customControls .fullscreenBtn:hover {
+  color: var(--c-accent);
+  border-color: var(--c-accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Fullscreen режим ── */
+.fullscreenMode .header { display: none; }
+.fullscreenMode .chatSection { display: none; }
+.fullscreenMode .videoInputRow { display: none; }
+
+.fullscreenMode .layout {
+  height: 100vh;
+}
+
+.fullscreenMode .playerSection {
+  padding: 0;
+  gap: 0;
+  position: relative;
+}
+
+.fullscreenMode .playerWrapper {
+  border-radius: 0;
+  isolation: isolate;
+}
+
+/* Контролы — overlay поверх видео (аналогично cinema) */
+.fullscreenMode .reactionBar {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  background: transparent;
+  border: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  white-space: nowrap;
+}
+
+.fullscreenMode .customControls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483647;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 65%, transparent 100%);
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 36px 24px 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+/* Показываем при движении мыши — аналог cinema mode */
+.fullscreenMode .showControls .reactionBar,
+.fullscreenMode .showControls .customControls {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Цвета под тёмный фон */
+.fullscreenMode .customControls .timeDisplay,
+.fullscreenMode .customControls .viewerStatus { color: rgba(255,255,255,0.85); }
+.fullscreenMode .customControls .syncBtn { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.7); }
+.fullscreenMode .customControls .syncBtn:hover { color: var(--c-accent); border-color: var(--c-accent); background: rgba(255,255,255,0.08); }
+.fullscreenMode .customControls .volumeIcon { color: rgba(255,255,255,0.8); }
+.fullscreenMode .customControls .cinemaBtn,
+.fullscreenMode .customControls .fullscreenBtn { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.7); }
+.fullscreenMode .customControls .cinemaBtn:hover,
+.fullscreenMode .customControls .fullscreenBtn:hover { color: var(--c-accent); border-color: var(--c-accent); background: rgba(255,255,255,0.08); }
+
+/* ── Fullscreen кнопка ── */
+.fullscreenBtn {
+  background: none;
+  border: 1px solid var(--c-border);
+  color: var(--c-text2);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.fullscreenBtn:hover {
+  color: var(--c-accent);
+  background: var(--c-surface2);
+  border-color: var(--c-accent);
+}
+
+/* Fullscreen: два угла → expand (↗↙) */
+.fullscreenBtnIcon {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.fullscreenBtnIcon::before,
+.fullscreenBtnIcon::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+}
+
+.fullscreenBtnIcon::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+}
+
+.fullscreenBtnIcon::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+}
+
+/* Fullscreen exit: два угла внутрь → compress */
+.fullscreenBtnIconExit {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.fullscreenBtnIconExit::before,
+.fullscreenBtnIconExit::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+}
+
+.fullscreenBtnIconExit::before {
+  bottom: 0;
+  left: 0;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+}
+
+.fullscreenBtnIconExit::after {
+  top: 0;
+  right: 0;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+}
+
+
+/* ── Кнопка оверлея чата (в fullscreen) ── */
+.overlayToggleBtn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.overlayToggleBtn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.overlayToggleBtnActive {
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+  background: rgba(223, 160, 110, 0.15);
+}
+
+.cinemaMode .overlayToggleBtn {
+  right: 294px;
+}
+
+/* ── Оверлей сообщений чата (fullscreen) ── */
+.chatOverlayMessages {
+  position: fixed;
+  bottom: 90px;
+  left: 20px;
+  z-index: 150;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 320px;
+}
+
+.chatOverlayMsg {
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  animation: overlayMsgIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes overlayMsgIn {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.chatOverlayUser {
+  font-weight: 700;
+  color: var(--c-accent);
+  margin-right: 6px;
+}
+
+.chatOverlayText {
+  color: rgba(255, 255, 255, 0.82);
+}
+
 /* ── Поле ввода видео ── */
 .videoInputRow {
   display: flex;
@@ -455,13 +1026,59 @@
 
 .message {
   display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 7px;
+  max-width: 92%;
+  animation: msgIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.msgContent {
+  display: flex;
   flex-direction: column;
   gap: 3px;
-  max-width: 88%;
+}
+
+.msgAvatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  align-self: flex-end;
+}
+
+.msgAvatarImg {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.msgAvatarInitials {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  color: var(--c-text2);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .own {
   align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.own .msgContent {
   align-items: flex-end;
 }
 
@@ -597,17 +1214,19 @@
   font-size: 20px;
   padding: 5px 9px;
   cursor: pointer;
-  transition: transform 0.1s, background 0.15s;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s;
   line-height: 1;
 }
 
 .reactionBtn:hover {
   background: var(--c-surface2);
-  transform: scale(1.18);
+  border-color: var(--c-border2);
+  transform: scale(1.22) translateY(-2px);
 }
 
 .reactionBtn:active {
-  transform: scale(0.9);
+  transform: scale(0.88);
+  transition: transform 0.1s;
 }
 
 /* ── Таймлайн эмоций над сикбаром ── */
@@ -625,21 +1244,22 @@
   pointer-events: none;
 }
 
-.timelineDot {
-  position: absolute;
-  transform: translateX(-50%);
-  font-size: 13px;
-  top: 0;
-  line-height: 1;
-  pointer-events: auto;
-  cursor: default;
-}
-
 /* ── Табы чата ── */
 .chatTabs {
   display: flex;
   border-bottom: 1px solid var(--c-border);
   flex-shrink: 0;
+  position: relative;
+}
+
+.chatTabIndicator {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  background: var(--c-accent);
+  border-radius: 2px 2px 0 0;
+  transition: left 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
 }
 
 .chatTab {
@@ -655,11 +1275,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: color 0.15s, background 0.15s;
+  transition: color 0.2s, background 0.2s;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
 }
 
 .chatTab:hover {
@@ -669,7 +1287,6 @@
 
 .chatTabActive {
   color: var(--c-accent);
-  border-bottom-color: var(--c-accent);
 }
 
 .queueBadge {
@@ -702,6 +1319,139 @@
   padding: 7px 10px;
   line-height: 1.4;
   word-break: break-word;
+}
+
+/* ── Панель участников ── */
+.usersPanel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.usersList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.userItem:hover {
+  background: var(--c-surface2);
+}
+
+.userItemMuted {
+  opacity: 0.55;
+}
+
+.userItemAvatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.userItemAvatarImg {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userItemAvatarInitials {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userItemInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userItemName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userItemSelf {
+  font-weight: 400;
+  color: var(--c-text3);
+}
+
+.userItemBadge {
+  font-size: 11px;
+  color: var(--c-accent);
+}
+
+.userItemBadgeMuted {
+  font-size: 11px;
+  color: var(--c-text3);
+}
+
+.userItemActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btnMod {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1.5px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text2);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btnMod:hover {
+  background: var(--c-surface2);
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+}
+
+.btnKick:hover {
+  border-color: var(--c-red);
+  color: var(--c-red);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.mutedNotice {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  color: var(--c-text3);
+  padding: 10px;
+  font-style: italic;
 }
 
 /* ── Панель очереди ── */
@@ -738,6 +1488,13 @@
   border: 1px solid var(--c-border);
   border-radius: 8px;
   padding: 6px 8px;
+  animation: msgIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.queueItem:hover {
+  background: var(--c-surface);
+  border-color: var(--c-border2);
 }
 
 .queueIndex {
@@ -834,4 +1591,70 @@
 .queueInputRow {
   display: flex;
   gap: 6px;
+}
+
+/* ── Fade-out при переходе со страницы ── */
+@keyframes pageOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+.pageFadeOut {
+  animation: pageOut 0.22s ease forwards;
+  pointer-events: none;
+}
+
+/* ── Иконка play/pause — pop при смене ── */
+@keyframes iconPop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.playIcon {
+  display: inline-block;
+  animation: iconPop 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Кнопка sync — вращение ── */
+@keyframes spinOnce {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.syncBtnSpin {
+  animation: spinOnce 0.55s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ── Точки таймлайна — pop при появлении ── */
+@keyframes dotPop {
+  from { transform: translateX(-50%) scale(0); opacity: 0; }
+  to   { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.timelineDot {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 13px;
+  top: 0;
+  line-height: 1;
+  pointer-events: auto;
+  cursor: default;
+  animation: dotPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Вход/выход участника в чате ── */
+@keyframes joinIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.joinLeaveMsg {
+  align-self: center;
+  text-align: center;
+  font-size: 11px;
+  color: var(--c-text3);
+  background: var(--c-surface2);
+  border-radius: 20px;
+  padding: 3px 12px;
+  max-width: 100%;
+  animation: joinIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }

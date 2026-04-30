@@ -5,6 +5,7 @@ import { useThemeStore } from "./store/theme";
 import AuthPage from "./pages/AuthPage";
 import LobbyPage from "./pages/LobbyPage";
 import RoomPage from "./pages/RoomPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function PrivateRoute({ children }) {
   const { token } = useAuthStore();
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/" element={<PrivateRoute><LobbyPage /></PrivateRoute>} />
         <Route path="/room/:id" element={<PrivateRoute><RoomPage /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

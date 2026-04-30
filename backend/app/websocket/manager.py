@@ -22,7 +22,7 @@ class ConnectionManager:
 
     async def broadcast(self, room_id: int, data: dict, exclude_user_id: int = None):
         dead = []
-        for uid, ws in list(self.rooms[room_id].items()):
+        for uid, ws in list(self.rooms.get(room_id, {}).items()):
             if uid == exclude_user_id:
                 continue
             try:
@@ -34,15 +34,25 @@ class ConnectionManager:
 
     async def kick_room(self, room_id: int):
         """Закрывает все WS-соединения в комнате (при удалении комнаты)."""
-        for ws in list(self.rooms[room_id].values()):
+        for ws in list(self.rooms.get(room_id, {}).values()):
             try:
                 await ws.close(code=4010)
             except Exception:
                 pass
         self.rooms.pop(room_id, None)
 
+    async def kick_user(self, room_id: int, user_id: int):
+        """Выбивает конкретного пользователя из комнаты."""
+        ws = self.rooms.get(room_id, {}).get(user_id)
+        if ws:
+            try:
+                await ws.close(code=4011)
+            except Exception:
+                pass
+        self.disconnect(room_id, user_id)
+
     def get_connected_user_ids(self, room_id: int) -> list[int]:
-        return list(self.rooms[room_id].keys())
+        return list(self.rooms.get(room_id, {}).keys())
 
 
 manager = ConnectionManager()
