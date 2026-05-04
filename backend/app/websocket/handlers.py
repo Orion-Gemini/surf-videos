@@ -165,12 +165,19 @@ async def handle_player_event(event: dict, room_id: int, user: User, db: AsyncSe
     else:
         was_playing = action == "play"
 
+    # #4: при seek во время воспроизведения нужен новый played_at (позиция изменилась)
+    # Иначе новый зритель вычислит неверный drift и окажется не на той позиции
+    if action == "play" or (action == "seek" and was_playing):
+        played_at = time.time()
+    else:
+        played_at = None
+
     state = {
         "action": action,
         "position": event.get("position", 0),
         "video_id": event.get("video_id") or (current_state.get("video_id") if current_state else None),
         "is_playing": was_playing,
-        "played_at": time.time() if action == "play" else (current_state.get("played_at") if current_state and action == "seek" and was_playing else None),
+        "played_at": played_at,
     }
 
     if action == "change_video" and state["video_id"]:
@@ -267,6 +274,15 @@ async def handle_queue_event(event: dict, room_id: int, user: User, db: AsyncSes
         next_video = queue.pop(0)
         await save_queue(room_id, queue)
 
+        result = await db.execute(select(Room).where(Room.id == room_id))
+        room = result.scalar_one_or_none()
+        if room:
+            # #5: очищаем таймлайн старого видео перед переключением
+            if room.current_video_id:
+                await redis_client.delete(timeline_key(room_id, room.current_video_id))
+            room.current_video_id = next_video
+            await db.commit()
+
         # Переключаем видео как change_video
         state = {
             "action": "change_video",
@@ -277,11 +293,9 @@ async def handle_queue_event(event: dict, room_id: int, user: User, db: AsyncSes
         }
         await save_player_state(room_id, state)
 
-        result = await db.execute(select(Room).where(Room.id == room_id))
-        room = result.scalar_one_or_none()
-        if room:
-            room.current_video_id = next_video
-            await db.commit()
+        # #5: включаем зал ожидания и сбрасываем готовых
+        await set_waiting(room_id, True)
+        await save_ready_users(room_id, [])
 
         await manager.broadcast(room_id, {
             "type": "player",
@@ -293,6 +307,11 @@ async def handle_queue_event(event: dict, room_id: int, user: User, db: AsyncSes
             "by": user.username,
         })
         await manager.broadcast(room_id, {"type": "queue_update", "queue": queue})
+        await manager.broadcast(room_id, {
+            "type": "ready_update",
+            "ready_users": [],
+            "online_count": len(manager.get_connected_user_ids(room_id)),
+        })
 
 
 async def send_initial_state(room_id: int, user: User, db: AsyncSession):
@@ -353,6 +372,12 @@ async def send_initial_state(room_id: int, user: User, db: AsyncSession):
 
 async def handle_ready_event(event: dict, room_id: int, user: User, db: AsyncSession):
     """Пользователь нажал 'Готов' — досмотрел рекламу."""
+    # #2: суперадмин без членства в комнате не должен блокировать overlay ожидания
+    if user.is_superuser:
+        member = await room_service.get_member(db, room_id, user.id)
+        if not member:
+            return
+
     ready = await get_ready_users(room_id)
     if not any(u["id"] == user.id for u in ready):
         ready.append({"id": user.id, "username": user.username, "avatar": user.avatar})
@@ -376,7 +401,8 @@ async def handle_countdown_event(event: dict, room_id: int, user: User, db: Asyn
     await set_waiting(room_id, False)
     await redis_client.delete(ready_key(room_id))
 
-    await manager.broadcast(room_id, {"type": "countdown"})
+    # #11/#19: server_ts позволяет клиентам скорректировать countdown на сетевую задержку
+    await manager.broadcast(room_id, {"type": "countdown", "server_ts": time.time()})
 
 
 async def handle_moderation_event(event: dict, room_id: int, user: User, db: AsyncSession):
@@ -387,8 +413,12 @@ async def handle_moderation_event(event: dict, room_id: int, user: User, db: Asy
         return
 
     action = event.get("action")          # mute | unmute | kick
-    target_id = event.get("user_id")
-    if not target_id or target_id == user.id:
+    # #18: валидируем target_id как число во избежание SQL-ошибки
+    try:
+        target_id = int(event.get("user_id"))
+    except (TypeError, ValueError):
+        return
+    if target_id == user.id:
         return
 
     target_result = await db.execute(select(User).where(User.id == target_id))

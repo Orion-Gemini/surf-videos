@@ -92,6 +92,7 @@ export default function RoomPage() {
   const timerRef = useRef(null);
   const syncIntervalRef = useRef(null);
   const joinLeaveTimers = useRef({});
+  const overlayMsgTimers = useRef([]);  // #9: для очистки таймаутов при unmount
   const avatarCache = useRef({});
   const userInfoCache = useRef({});
 
@@ -242,7 +243,9 @@ export default function RoomPage() {
         if (isChatOverlayRef.current) {
           const om = { ...data, _oid: Date.now() + Math.random() };
           setOverlayMessages(prev => [...prev.slice(-4), om]);
-          setTimeout(() => setOverlayMessages(prev => prev.filter(m => m._oid !== om._oid)), 4500);
+          // #9: сохраняем таймаут чтобы очистить при unmount
+          const t = setTimeout(() => setOverlayMessages(prev => prev.filter(m => m._oid !== om._oid)), 4500);
+          overlayMsgTimers.current.push(t);
         }
       } else if (data.type === "user_joined") {
         if (data.avatar && data.user_id) avatarCache.current[data.user_id] = data.avatar;
@@ -306,8 +309,11 @@ export default function RoomPage() {
         setIsReady(false);
         setReadyUsers([]);
         clearInterval(countdownRef.current);
-        setCountdownVal(3);
-        let n = 3;
+        // #11/#19: корректируем начальное значение на сетевую задержку
+        const drift = data.server_ts ? (Date.now() / 1000 - data.server_ts) : 0;
+        const startVal = Math.max(1, Math.round(3 - drift));
+        setCountdownVal(startVal);
+        let n = startVal;
         countdownRef.current = setInterval(() => {
           n -= 1;
           if (n <= 0) {
@@ -610,14 +616,17 @@ export default function RoomPage() {
     clearInterval(countdownRef.current);
     Object.values(joinLeaveTimers.current).forEach(clearTimeout);
     clearTimeout(hideControlsTimerRef.current);
+    overlayMsgTimers.current.forEach(clearTimeout);  // #9
   }, []);
 
   if (!room) return <div className={styles.loading}>Загрузка комнаты...</div>;
 
   const isAdmin = room?.owner?.id === user?.id || user?.is_superuser === true;
   isAdminRef.current = isAdmin;
+  // #16: autoplay=1 для зрителя; admin подавляет echo через suppressPlayRef в handleJoin
+  // Для admin при change_video iframe перезагружается — autoplay не нужен (suppress одноразовый)
   const embedUrl = room.current_video_id
-    ? `https://rutube.ru/play/embed/${room.current_video_id}/?autoplay=1`
+    ? `https://rutube.ru/play/embed/${room.current_video_id}/${isAdmin ? "" : "?autoplay=1"}`
     : null;
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const volumeIcon = isMuted ? "🔇" : volume < 50 ? "🔉" : "🔊";

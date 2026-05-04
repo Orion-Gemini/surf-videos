@@ -78,8 +78,8 @@ async def get_room(
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    # Приватную комнату видит только участник
-    if room.type == RoomType.private:
+    # #17: приватную комнату видит только участник или суперадмин
+    if room.type == RoomType.private and not current_user.is_superuser:
         member = await room_service.get_member(db, room.id, current_user.id)
         if not member:
             raise HTTPException(status_code=403, detail="Access denied")

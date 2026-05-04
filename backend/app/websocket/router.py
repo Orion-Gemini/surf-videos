@@ -1,5 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app.services.auth import decode_token
 from app.services import room as room_service
@@ -61,24 +62,35 @@ async def room_websocket(
         await ws.close(code=deny_code)
         return
 
-    # Для публичной — добавляем в БД если не был
+    # Для публичной — добавляем в БД если не был (#13: IntegrityError при race condition)
     if room.type == RoomType.public:
         existing = await room_service.get_member(db, room_id, user.id)
         if not existing:
-            await room_service.join_room(db, room, user)
+            try:
+                await room_service.join_room(db, room, user)
+            except IntegrityError:
+                await db.rollback()  # другой WS успел вставить раньше — не проблема
+
+    # #3: если пользователь уже подключён (две вкладки/быстрый реконнект) — закрываем старое
+    old_ws = manager.rooms.get(room_id, {}).get(user.id)
+    if old_ws:
+        try:
+            await old_ws.close(code=1000)
+        except Exception:
+            pass
+
     manager.connect(room_id, user.id, ws)
 
     try:
-        # Уведомляем остальных о подключении
+        # #14: сначала init новому пользователю, потом user_joined остальным
+        # Иначе broadcast может прийти раньше init
+        await send_initial_state(room_id, user, db)
         await manager.broadcast(room_id, {
             "type": "user_joined",
             "user_id": user.id,
             "username": user.username,
             "avatar": user.avatar,
         }, exclude_user_id=user.id)
-
-        # Отправляем начальное состояние новому участнику
-        await send_initial_state(room_id, user, db)
 
         while True:
             try:
@@ -88,6 +100,13 @@ async def room_websocket(
             except Exception:
                 # Невалидный JSON — пропускаем без разрыва соединения
                 continue
+
+            # #7: проверяем бан при каждом событии
+            await db.refresh(user)
+            if not user.is_active:
+                await ws.close(code=4010)
+                break
+
             event_type = event.get("type")
 
             if event_type == "chat":
@@ -109,8 +128,11 @@ async def room_websocket(
         pass
     finally:
         manager.disconnect(room_id, user.id)
-        await manager.broadcast(room_id, {
-            "type": "user_left",
-            "user_id": user.id,
-            "username": user.username,
-        })
+        # #1: не слать user_left если пользователь был выбит киком
+        # (модератор уже разослал moderated/kick всем)
+        if not manager.was_kicked(room_id, user.id):
+            await manager.broadcast(room_id, {
+                "type": "user_left",
+                "user_id": user.id,
+                "username": user.username,
+            })

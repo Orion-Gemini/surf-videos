@@ -6,9 +6,19 @@ class ConnectionManager:
     def __init__(self):
         # room_id -> {user_id: WebSocket}
         self.rooms: dict[int, dict[int, WebSocket]] = defaultdict(dict)
+        # Пользователи выброшенные кикем — чтобы не слать user_left в finally
+        self._kicked: set[tuple[int, int]] = set()
 
     def connect(self, room_id: int, user_id: int, ws: WebSocket):
         self.rooms[room_id][user_id] = ws
+
+    def was_kicked(self, room_id: int, user_id: int) -> bool:
+        """Проверяет и сбрасывает флаг кика. True → пользователь был выбит."""
+        key = (room_id, user_id)
+        if key in self._kicked:
+            self._kicked.discard(key)
+            return True
+        return False
 
     def disconnect(self, room_id: int, user_id: int):
         self.rooms[room_id].pop(user_id, None)
@@ -43,6 +53,7 @@ class ConnectionManager:
 
     async def kick_user(self, room_id: int, user_id: int):
         """Выбивает конкретного пользователя из комнаты."""
+        self._kicked.add((room_id, user_id))
         ws = self.rooms.get(room_id, {}).get(user_id)
         if ws:
             try:
