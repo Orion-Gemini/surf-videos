@@ -4,11 +4,8 @@ import api from "../api";
 import { useAuthStore } from "../store/auth";
 import { useThemeStore } from "../store/theme";
 import { useWebSocket } from "../hooks/useWebSocket";
+import { usePlayer } from "../player/usePlayer";
 import styles from "./RoomPage.module.css";
-
-function postToPlayer(iframe, type, data = {}) {
-  iframe?.contentWindow?.postMessage(JSON.stringify({ type, data }), "*");
-}
 
 function formatTime(sec) {
   if (!isFinite(sec) || sec < 0) return "00:00";
@@ -83,13 +80,11 @@ export default function RoomPage() {
 
   const chatBottomRef = useRef(null);
   const iframeRef = useRef(null);
-  const playerReadyRef = useRef(false);
   const pendingStateRef = useRef(null);
   const isAdminRef = useRef(false);
   const suppressPlayRef = useRef(false);
   const suppressPauseRef = useRef(false);
   const applyTimeoutRef = useRef(null);
-  const justSeekedRef = useRef(false);
   const roomRef = useRef(null);
   const currentTimeRef = useRef(0);
   const isPlayingRef = useRef(false);
@@ -101,6 +96,41 @@ export default function RoomPage() {
   const userInfoCache = useRef({});
 
   roomRef.current = room;
+
+  // ── Player controller ────────────────────────────────────────────────────
+  // Handlers are read via handlersRef inside usePlayer, so closures are always
+  // fresh even though send/applyToPlayer are defined further below.
+  const { controllerRef } = usePlayer(iframeRef, !showJoinOverlay, {
+    onReady: () => {
+      if (pendingStateRef.current) {
+        const s = pendingStateRef.current;
+        applyToPlayer(s.action, s.position, s.played_at);
+        pendingStateRef.current = null;
+        clearTimeout(applyTimeoutRef.current);
+        applyTimeoutRef.current = setTimeout(() => setShowSyncOverlay(false), 600);
+      } else {
+        setShowSyncOverlay(false);
+      }
+    },
+    onDuration: (d) => { if (d?.duration) setDuration(d.duration); },
+    onCurrentTime: (d) => {
+      if (!isSeekingRef.current && d?.time !== undefined) {
+        currentTimeRef.current = d.time;
+      }
+    },
+    onPlay: () => {
+      if (!isAdminRef.current) return;
+      if (suppressPlayRef.current) { suppressPlayRef.current = false; return; }
+      startTimer(currentTimeRef.current);
+      send({ type: "player", action: "play", position: currentTimeRef.current, video_id: roomRef.current?.current_video_id });
+    },
+    onPause: () => {
+      if (!isAdminRef.current) return;
+      if (suppressPauseRef.current) { suppressPauseRef.current = false; return; }
+      stopTimer();
+      send({ type: "player", action: "pause", position: currentTimeRef.current, video_id: roomRef.current?.current_video_id });
+    },
+  });
 
   function startTimer(fromPosition) {
     clearInterval(timerRef.current);
@@ -129,15 +159,15 @@ export default function RoomPage() {
   }
 
   const applyToPlayer = useCallback((action, position = 0, playedAt = null) => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
+    const ctrl = controllerRef.current;
+    if (!ctrl) return;
 
     const safePos = isFinite(Number(position)) ? Number(position) : 0;
 
     if (action === "play") {
-      postToPlayer(iframe, "player:play");
+      ctrl.send("player:play");
       // 800мс при первой загрузке (Rutube нужно время до ready), 300мс если плеер уже запущен
-      const seekDelay = playerReadyRef.current ? 300 : 800;
+      const seekDelay = ctrl.isReady() ? 300 : 800;
       clearTimeout(applyTimeoutRef.current);
       applyTimeoutRef.current = setTimeout(() => {
         let seekPos = safePos;
@@ -145,24 +175,20 @@ export default function RoomPage() {
           seekPos = safePos + Math.max(0, Date.now() / 1000 - Number(playedAt));
         }
         if (!isFinite(seekPos)) seekPos = safePos;
-        postToPlayer(iframe, "player:setCurrentTime", { time: seekPos });
+        ctrl.seekTo(seekPos);
         currentTimeRef.current = seekPos;
         startTimer(seekPos);
       }, seekDelay);
     } else if (action === "pause") {
-      postToPlayer(iframe, "player:pause");
+      ctrl.pause();
       currentTimeRef.current = safePos;
       setCurrentTime(safePos);
       stopTimer();
     } else if (action === "seek") {
-      postToPlayer(iframe, "player:setCurrentTime", { time: safePos });
+      ctrl.seekTo(safePos);
       currentTimeRef.current = safePos;
       setCurrentTime(safePos);
-      justSeekedRef.current = true;
-      clearTimeout(applyTimeoutRef.current);
-      applyTimeoutRef.current = setTimeout(() => { justSeekedRef.current = false; }, 300);
     } else if (action === "sync") {
-      // Коррекция позиции с учётом сетевой задержки
       let seekPos = safePos;
       if (playedAt && isFinite(Number(playedAt))) {
         seekPos = safePos + Math.max(0, Date.now() / 1000 - Number(playedAt));
@@ -171,14 +197,13 @@ export default function RoomPage() {
       // Только если рассинхрон значительный (> 0.5с), чтобы не дёргать при heartbeat
       const drift = Math.abs(seekPos - currentTimeRef.current);
       if (drift > 0.5) {
-        postToPlayer(iframe, "player:setCurrentTime", { time: seekPos });
+        ctrl.seekTo(seekPos);
         currentTimeRef.current = seekPos;
         setCurrentTime(seekPos);
-        // Перезапускаем таймер от новой позиции
         if (isPlayingRef.current) startTimer(seekPos);
       }
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { send } = useWebSocket(Number(id), token, {
     onMessage: (data) => {
@@ -205,7 +230,7 @@ export default function RoomPage() {
         if (data.player_state) {
           setPlayerState(data.player_state);
           pendingStateRef.current = data.player_state;
-          if (playerReadyRef.current) {
+          if (controllerRef.current?.isReady()) {
             const s = data.player_state;
             applyToPlayer(s.action, s.position, s.played_at);
             pendingStateRef.current = null;
@@ -292,7 +317,7 @@ export default function RoomPage() {
               const pos = 0;
               suppressPlayRef.current = true;
               send({ type: "player", action: "play", position: pos, video_id: roomRef.current?.current_video_id });
-              postToPlayer(iframeRef.current, "player:play");
+              controllerRef.current?.send("player:play");
               startTimer(pos);
             }
           } else {
@@ -314,10 +339,10 @@ export default function RoomPage() {
           setReadyUsers([]);
           setIsWaiting(true);
           setShowJoinOverlay(true);
-          playerReadyRef.current = false;
+          controllerRef.current?.reset();
           pendingStateRef.current = null;
         } else if (!isAdminRef.current) {
-          if (!playerReadyRef.current) {
+          if (!controllerRef.current?.isReady()) {
             // sync во время рекламы — запоминаем как play чтобы запустить после рекламы
             const pending = data.action === "sync" ? { ...data, action: "play" } : data;
             pendingStateRef.current = pending;
@@ -345,47 +370,6 @@ export default function RoomPage() {
     },
   });
 
-  useEffect(() => {
-    function handleMessage(event) {
-      let data;
-      try { data = JSON.parse(event.data); } catch { return; }
-
-      if (data.type === "player:ready") {
-        playerReadyRef.current = true;
-        if (pendingStateRef.current) {
-          const s = pendingStateRef.current;
-          applyToPlayer(s.action, s.position, s.played_at);
-          pendingStateRef.current = null;
-          // Убираем overlay после seek (300мс задержка applyToPlayer + 200мс буфер)
-          clearTimeout(applyTimeoutRef.current);
-          applyTimeoutRef.current = setTimeout(() => setShowSyncOverlay(false), 600);
-        } else {
-          setShowSyncOverlay(false);
-        }
-      }
-      if (data.type === "player:durationChange" && data.data?.duration) {
-        setDuration(data.data.duration);
-      }
-      if (data.type === "player:currentTime" && data.data?.time !== undefined) {
-        // Баг 1: игнорируем устаревшую позицию от Rutube сразу после seek
-        if (!isSeekingRef.current && !justSeekedRef.current) {
-          currentTimeRef.current = data.data.time;
-        }
-      }
-      if (isAdminRef.current) {
-        if (data.type === "player:play") {
-          if (suppressPlayRef.current) { suppressPlayRef.current = false; }
-          else { startTimer(currentTimeRef.current); send({ type: "player", action: "play", position: currentTimeRef.current, video_id: roomRef.current?.current_video_id }); }
-        }
-        if (data.type === "player:pause") {
-          if (suppressPauseRef.current) { suppressPauseRef.current = false; }
-          else { stopTimer(); send({ type: "player", action: "pause", position: currentTimeRef.current, video_id: roomRef.current?.current_video_id }); }
-        }
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [applyToPlayer, send]);
 
   async function loadRoom() {
     try {
@@ -405,9 +389,9 @@ export default function RoomPage() {
 
   function adminPlayerAction(action) {
     const position = currentTimeRef.current;
-    const iframe = iframeRef.current;
-    if (action === "play") { suppressPlayRef.current = true; postToPlayer(iframe, "player:play"); startTimer(position); }
-    else if (action === "pause") { suppressPauseRef.current = true; postToPlayer(iframe, "player:pause"); stopTimer(); }
+    const ctrl = controllerRef.current;
+    if (action === "play") { suppressPlayRef.current = true; ctrl?.send("player:play"); startTimer(position); }
+    else if (action === "pause") { suppressPauseRef.current = true; ctrl?.pause(); stopTimer(); }
     send({ type: "player", action, position, video_id: roomRef.current?.current_video_id });
     const label = ACTION_LABELS[action];
     if (label) {
@@ -424,7 +408,7 @@ export default function RoomPage() {
   function onSeekCommit(e) {
     const val = Number(e.target.value);
     isSeekingRef.current = false;
-    postToPlayer(iframeRef.current, "player:setCurrentTime", { time: val });
+    controllerRef.current?.seekTo(val);
     currentTimeRef.current = val;
     if (isPlayingRef.current) {
       startTimer(val);
@@ -438,7 +422,7 @@ export default function RoomPage() {
   function changeVideo() {
     const trimmed = videoInput.trim();
     if (!trimmed) return;
-    playerReadyRef.current = false;
+    controllerRef.current?.reset();
     currentTimeRef.current = 0;
     setCurrentTime(0);
     setDuration(0);
@@ -455,13 +439,14 @@ export default function RoomPage() {
   }
 
   function toggleMute() {
+    const ctrl = controllerRef.current;
     if (isMuted) {
       setIsMuted(false);
-      postToPlayer(iframeRef.current, "player:unmute");
-      postToPlayer(iframeRef.current, "player:setVolume", { volume: volume / 100 });
+      ctrl?.setMuted(false);
+      ctrl?.setVolume(volume / 100);
     } else {
       setIsMuted(true);
-      postToPlayer(iframeRef.current, "player:mute");
+      ctrl?.setMuted(true);
     }
   }
 
@@ -470,9 +455,9 @@ export default function RoomPage() {
     setVolume(val);
     if (isMuted) {
       setIsMuted(false);
-      postToPlayer(iframeRef.current, "player:unmute");
+      controllerRef.current?.setMuted(false);
     }
-    postToPlayer(iframeRef.current, "player:setVolume", { volume: val / 100 });
+    controllerRef.current?.setVolume(val / 100);
   }
 
   function handleJoin() {

@@ -33,10 +33,12 @@ engine = create_async_engine(settings.DATABASE_URL, echo=False, connect_args={"s
 ## 4. Запушить в git (Render деплоит автоматически)
 
 ```bash
-git add backend/app/database.py backend/.env frontend/.env
+git add backend/app/database.py
 git commit -m "fix: switch to production env"
 git push
 ```
+
+> ⚠️ `.env` файлы в `.gitignore` — **не коммитить**. Переменные окружения задаются в Render Dashboard → Environment.
 
 ## 5. Vercel — обновить переменную
 
@@ -49,7 +51,7 @@ Vercel Dashboard → surf-videos → Settings → Environment Variables
 |-----------|-----------|-----|
 | Frontend  | Vercel    | https://surf-videos-psi.vercel.app |
 | Backend   | Render    | https://surf-videos.onrender.com |
-| MySQL     | Aiven     | mysql-1c2125cd-ptptoat-2cd2.f.aivencloud.com:23445 (истекает ~01.05.2026) |
+| MySQL     | ~~Aiven~~ freesqldatabase.com | Aiven **истёк 01.05.2026** — обновить DATABASE_URL на новый хост из freesqldatabase.com |
 | Redis     | Upstash   | on-macaque-74828.upstash.io:6379 |
 
 ## Локальная разработка

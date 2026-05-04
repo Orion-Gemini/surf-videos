@@ -12,20 +12,22 @@
 - Backend: Python + FastAPI + WebSockets (asyncio)
 - БД: MySQL (SQLAlchemy async) + Redis (состояние плеера)
 - Плеер: Rutube embed iframe + postMessage API
-- Деплой: ngrok (для демо)
+- Деплой: Vercel (frontend) + Render.com (backend) + Aiven MySQL + Upstash Redis
 
 **Структура backend:**
 - `app/models/` — User, Room, RoomMember, Message
 - `app/schemas/` — Pydantic валидация
 - `app/services/` — auth (JWT+bcrypt), room CRUD, deps (get_current_user)
-- `app/routers/` — auth (register/login), rooms (CRUD + join by code)
-- `app/websocket/` — manager (ConnectionManager), handlers (chat, player, init), router
+- `app/routers/` — auth (register/login), rooms (CRUD + join by code), admin (управление пользователями и комнатами), users (профиль, аватар)
+- `app/websocket/` — manager (ConnectionManager), handlers (chat, player, reaction, queue, ready, countdown, moderation), router
 
 **Структура frontend:**
-- `pages/AuthPage.jsx` — логин/регистрация
-- `pages/LobbyPage.jsx` — список публичных комнат, создание, вход по коду
-- `pages/RoomPage.jsx` — плеер Rutube + кастомные контролы + чат + синхронизация
+- `pages/AuthPage.jsx` — логин/регистрация (+ юридические соглашения)
+- `pages/LobbyPage.jsx` — список публичных комнат, создание, вход по коду, мои комнаты, admin-панель
+- `pages/RoomPage.jsx` — плеер Rutube + кастомные контролы + чат + синхронизация + зал ожидания + кинотеатр/fullscreen
+- `pages/ProfilePage.jsx` — профиль, аватар, смена пароля
 - `hooks/useWebSocket.js` — WebSocket хук
+- `player/` — RutubePlayerController, PostMessageBridge, CommandQueue, PlayerEventEmitter, usePlayer
 - `store/auth.js` — Zustand стор (token, user в localStorage)
 - `store/theme.js` — Zustand стор (dark/light тема в localStorage)
 
@@ -535,13 +537,13 @@ if (!isFinite(seekPos)) seekPos = safePos;
 |-----------|-----------|-----|------------|
 | Frontend | Vercel | https://surf-videos-psi.vercel.app | Auto-deploy из GitHub main |
 | Backend | Render.com | https://surf-videos.onrender.com | Free tier, засыпает после 15 мин |
-| MySQL | Aiven.io | mysql-1c2125cd-ptptoat-2cd2.f.aivencloud.com:23445 | Free 30 дней, истекает ~01.05.2026 |
+| MySQL | Aiven.io | mysql-1c2125cd-ptptoat-2cd2.f.aivencloud.com:23445 | **ИСТЁК 01.05.2026** — заменить на freesqldatabase.com (обновить DATABASE_URL в Render) |
 | Redis | Upstash | on-macaque-74828.upstash.io:6379 | Free навсегда, 256MB |
 
 ### Важные детали
 
 - **Render засыпает** после 15 мин неактивности → первый запрос ждёт ~50 сек. Перед демо открыть `https://surf-videos.onrender.com/docs` чтобы разбудить.
-- **Aiven истекает** через 30 дней. После — перейти на freesqldatabase.com (обновить `DATABASE_URL` в Render Environment Variables).
+- **Aiven истёк** 01.05.2026. Перейти на freesqldatabase.com (обновить `DATABASE_URL` в Render Environment Variables).
 - **SSL для Aiven:** в `app/database.py` — `ssl_ctx.verify_mode = ssl.CERT_NONE` (самоподписанный сертификат Aiven).
 - **`VITE_BACKEND_URL`** выставлен в Vercel Environment Variables → `https://surf-videos.onrender.com`.
 

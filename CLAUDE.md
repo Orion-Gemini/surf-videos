@@ -49,16 +49,22 @@ npm run lint     # eslint
 - `router.py` — единственный WS endpoint `/ws/rooms/{room_id}?token=...`: аутентификация → `ws.accept()` → `send_initial_state` → event loop
 - `handlers.py` — обработчики событий по типу:
   - `chat` → `handle_message`: сохраняет в MySQL, бродкаст
-  - `player` → `handle_player_event`: только admin, сохраняет в Redis, бродкаст (exclude_user_id=sender)
+  - `player` → `handle_player_event`: только admin (или суперадмин), сохраняет в Redis, бродкаст (exclude_user_id=sender)
   - `reaction` → `handle_reaction`: летящий эмодзи + запись в Redis timeline
   - `queue` → `handle_queue_event`: add/remove/skip очереди в Redis
+  - `ready` → `handle_ready_event`: зал ожидания — пользователь готов, бродкаст `ready_update`
+  - `countdown` → `handle_countdown_event`: только admin, запускает обратный отсчёт перед стартом
+  - `moderation` → handle mute/unmute/kick: только admin/суперадмин, управляет `muted_users` в Redis или закрывает WS кодом 4011
 
 **Redis ключи** (TTL 24ч):
 - `room:{id}:player` — текущее состояние плеера (action, position, video_id, is_playing, played_at)
 - `room:{id}:queue` — очередь видео (JSON list)
 - `room:{id}:video:{vid}:timeline` — таймлайн реакций для видео (JSON list)
+- `room:{id}:waiting` — флаг режима зала ожидания (JSON bool)
+- `room:{id}:ready_users` — список готовых пользователей (JSON list `{id, username, avatar}`)
+- `room:{id}:muted_users` — список замученных user_id (JSON list)
 
-**Авторизация WebSocket:** токен передаётся через query param `?token=...`, декодируется до `ws.accept()`, отказ через `ws.close(code=4001/4003/4004)` после accept.
+**Авторизация WebSocket:** токен передаётся через query param `?token=...`, декодируется до `ws.accept()`, отказ через `ws.close(code=...)` после accept. Коды: 4001 (нет токена), 4003 (нет доступа к приватной комнате), 4004 (комната не найдена), 4010 (kick room / удаление комнаты), 4011 (kick user модератором).
 
 ### Frontend (`frontend/src/`)
 
@@ -76,7 +82,7 @@ npm run lint     # eslint
 - Rutube embed iframe управляется через `postMessage` API (`player:play`, `player:pause`, `player:setCurrentTime`, `player:mute` и др.)
 - **Join overlay**: iframe не рендерится до клика пользователя (`showJoinOverlay` state), чтобы не нарушать autoplay policy браузера
 - **Sync при входе**: состояние плеера приходит в `init` WS-событии → сохраняется в `pendingStateRef` → применяется в `player:ready` postMessage callback
-- **Viewer autoplay**: `?autoplay=1` добавляется к embed URL только для зрителя когда `pendingIsPlaying=true`
+- **Viewer autoplay**: `?autoplay=1` добавляется к embed URL для всех пользователей; admin подавляет эхо-событие через `suppressPlayRef`
 - **NaN защита**: вся работа с position через `isFinite(Number(x)) ? Number(x) : 0`
 - **Live события пока overlay показан**: обновляют `pendingStateRef` чтобы при входе применилось актуальное состояние
 - `handlersRef` паттерн в `useWebSocket` предотвращает stale closure на WS callbacks
@@ -88,22 +94,28 @@ npm run lint     # eslint
 **Клиент → сервер:**
 ```js
 { type: "chat", text }
-{ type: "player", action: "play"|"pause"|"seek"|"change_video", position, video_id }
+{ type: "player", action: "play"|"pause"|"seek"|"change_video"|"sync", position, video_id }
 { type: "reaction", emoji, time }
 { type: "queue", action: "add"|"remove"|"skip", video_id?, index? }
+{ type: "ready" }
+{ type: "countdown" }
+{ type: "moderation", action: "mute"|"unmute"|"kick", user_id }
 ```
 
 **Сервер → клиент:**
 ```js
-{ type: "init", chat_history, player_state, online_user_ids, online_users: [{id, username, avatar}], queue, timeline }
+{ type: "init", chat_history, player_state, online_user_ids, online_users: [{id, username, avatar}], queue, timeline, is_waiting, ready_users, muted_user_ids }
 { type: "chat", id, user_id, username, text, created_at }
 { type: "player", action, position, video_id, is_playing, played_at, by }
 { type: "reaction", emoji, user_id, username }
 { type: "queue_update", queue }
 { type: "timeline_update", timeline }
 { type: "user_joined"|"user_left", user_id, username }
+{ type: "ready_update", ready_users }
+{ type: "countdown" }
+{ type: "moderated", action, user_id, username, by }
 ```
 
 ### Роли
 
-`MemberRole.admin` — владелец комнаты (создатель). Только admin управляет плеером и очередью. Роль проверяется в `handlers.py` через `room_service.get_member()`.
+`MemberRole.admin` — владелец комнаты (создатель). Только admin управляет плеером, очередью и модерацией. Роль проверяется в `handlers.py` через `room_service.get_member()`. Суперадмин (`is_superuser=True`) имеет те же права в **любой** комнате без проверки членства.
