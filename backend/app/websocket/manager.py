@@ -20,7 +20,11 @@ class ConnectionManager:
             return True
         return False
 
-    def disconnect(self, room_id: int, user_id: int):
+    def disconnect(self, room_id: int, user_id: int, ws: WebSocket = None):
+        # Если передан ws — удаляем только если он всё ещё актуален.
+        # Защита от случая когда старая горутина вытесняет новое соединение.
+        if ws is not None and self.rooms.get(room_id, {}).get(user_id) is not ws:
+            return
         self.rooms[room_id].pop(user_id, None)
         if not self.rooms[room_id]:
             del self.rooms[room_id]

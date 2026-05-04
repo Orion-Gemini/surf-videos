@@ -127,12 +127,15 @@ async def room_websocket(
     except WebSocketDisconnect:
         pass
     finally:
-        manager.disconnect(room_id, user.id)
+        # Передаём ws чтобы disconnect не удалил более новое соединение
+        # (#3: если пользователь переподключился, rooms[user_id] уже = новый ws)
+        manager.disconnect(room_id, user.id, ws)
         # #1: не слать user_left если пользователь был выбит киком
-        # (модератор уже разослал moderated/kick всем)
+        # Также не слать если пользователь уже переподключился (есть другой активный ws)
         if not manager.was_kicked(room_id, user.id):
-            await manager.broadcast(room_id, {
-                "type": "user_left",
-                "user_id": user.id,
-                "username": user.username,
-            })
+            if user.id not in manager.rooms.get(room_id, {}):
+                await manager.broadcast(room_id, {
+                    "type": "user_left",
+                    "user_id": user.id,
+                    "username": user.username,
+                })
