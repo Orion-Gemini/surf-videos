@@ -4,6 +4,7 @@ import api from "../api";
 import { useAuthStore } from "../store/auth";
 import { useThemeStore } from "../store/theme";
 import styles from "./ProfilePage.module.css";
+import LegalFooter from "../components/LegalFooter";
 
 export default function ProfilePage() {
   const { user, logout } = useAuthStore();
@@ -22,6 +23,12 @@ export default function ProfilePage() {
   const [passSuccess, setPassSuccess] = useState("");
   const [passLoading, setPassLoading] = useState(false);
 
+  const [deletionRequest, setDeletionRequest] = useState(undefined); // undefined = not loaded
+  const [showDeletionForm, setShowDeletionForm] = useState(false);
+  const [deletionReason, setDeletionReason] = useState("");
+  const [deletionLoading, setDeletionLoading] = useState(false);
+  const [deletionError, setDeletionError] = useState("");
+
   function goTo(path) {
     setLeaving(true);
     setTimeout(() => navigate(path), 220);
@@ -32,6 +39,9 @@ export default function ProfilePage() {
     api.get("/users/me")
       .then(({ data }) => { if (mounted) setProfile(data); })
       .finally(() => { if (mounted) setLoading(false); });
+    api.get("/users/me/deletion-request")
+      .then(({ data }) => { if (mounted) setDeletionRequest(data); })
+      .catch(() => { if (mounted) setDeletionRequest(null); });
     return () => { mounted = false; };
   }, []);
 
@@ -102,6 +112,34 @@ export default function ProfilePage() {
     } finally {
       setAvatarUploading(false);
       e.target.value = "";
+    }
+  }
+
+  async function handleDeletionSubmit(e) {
+    e.preventDefault();
+    setDeletionError("");
+    setDeletionLoading(true);
+    try {
+      const { data } = await api.post("/users/me/deletion-request", { reason: deletionReason || null });
+      setDeletionRequest(data);
+      setShowDeletionForm(false);
+      setDeletionReason("");
+    } catch (err) {
+      setDeletionError(err.response?.data?.detail || "Ошибка");
+    } finally {
+      setDeletionLoading(false);
+    }
+  }
+
+  async function handleDeletionCancel() {
+    setDeletionLoading(true);
+    try {
+      await api.delete("/users/me/deletion-request");
+      setDeletionRequest(null);
+    } catch (err) {
+      setDeletionError(err.response?.data?.detail || "Ошибка");
+    } finally {
+      setDeletionLoading(false);
     }
   }
 
@@ -222,6 +260,78 @@ export default function ProfilePage() {
               )}
             </div>
 
+            {/* Запрос на удаление аккаунта */}
+            <div className={styles.section}>
+              <button
+                className={styles.sectionToggle}
+                onClick={() => { setShowDeletionForm(v => !v); setDeletionError(""); }}
+              >
+                <span>Удалить аккаунт</span>
+                <span className={styles.toggleIcon}>{showDeletionForm ? "▲" : "▼"}</span>
+              </button>
+
+              {showDeletionForm && (
+                <div className={styles.deletionSection}>
+                  {deletionRequest?.status === "pending" ? (
+                    <div className={styles.deletionPending}>
+                      <p className={styles.deletionStatusText}>
+                        Заявка на удаление отправлена и ожидает рассмотрения администратором.
+                      </p>
+                      {deletionRequest.reason && (
+                        <p className={styles.deletionReason}>Причина: {deletionRequest.reason}</p>
+                      )}
+                      {deletionError && <p className={styles.error}>{deletionError}</p>}
+                      <button
+                        className={styles.btnGhost}
+                        onClick={handleDeletionCancel}
+                        disabled={deletionLoading}
+                      >
+                        {deletionLoading ? "..." : "Отозвать заявку"}
+                      </button>
+                    </div>
+                  ) : deletionRequest?.status === "rejected" ? (
+                    <div className={styles.deletionPending}>
+                      <p className={styles.deletionStatusText}>
+                        Предыдущая заявка была отклонена. Вы можете подать новую.
+                      </p>
+                      <form className={styles.passForm} onSubmit={handleDeletionSubmit}>
+                        <textarea
+                          className={styles.input}
+                          style={{ userSelect: "text", WebkitUserSelect: "text" }}
+                          placeholder="Причина (необязательно)"
+                          value={deletionReason}
+                          onChange={e => setDeletionReason(e.target.value)}
+                          rows={3}
+                        />
+                        {deletionError && <p className={styles.error}>{deletionError}</p>}
+                        <button className={styles.btnDanger} type="submit" disabled={deletionLoading}>
+                          {deletionLoading ? "..." : "Отправить заявку"}
+                        </button>
+                      </form>
+                    </div>
+                  ) : (
+                    <form className={styles.passForm} onSubmit={handleDeletionSubmit}>
+                      <p className={styles.deletionHint}>
+                        Заявка будет рассмотрена администратором. Аккаунт будет удалён вместе со всеми данными.
+                      </p>
+                      <textarea
+                        className={styles.input}
+                        style={{ userSelect: "text", WebkitUserSelect: "text" }}
+                        placeholder="Причина (необязательно)"
+                        value={deletionReason}
+                        onChange={e => setDeletionReason(e.target.value)}
+                        rows={3}
+                      />
+                      {deletionError && <p className={styles.error}>{deletionError}</p>}
+                      <button className={styles.btnDanger} type="submit" disabled={deletionLoading}>
+                        {deletionLoading ? "..." : "Отправить заявку"}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Выход */}
             <button className={styles.btnLogout} onClick={handleLogout}>
               Выйти из аккаунта
@@ -229,6 +339,7 @@ export default function ProfilePage() {
           </>
         )}
       </main>
+      <LegalFooter />
     </div>
   );
 }

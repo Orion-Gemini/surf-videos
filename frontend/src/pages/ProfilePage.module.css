@@ -304,6 +304,12 @@
   border-color: var(--c-accent);
 }
 
+textarea.input {
+  resize: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 .btn {
   padding: 12px;
   border-radius: 10px;
@@ -374,4 +380,91 @@
 .hint {
   color: var(--c-text3);
   font-size: 14px;
+}
+
+/* ── Кнопка опасного действия ── */
+.btnDanger {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(248, 113, 113, 0.4);
+  background: transparent;
+  color: var(--c-red);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  margin-top: 2px;
+}
+
+.btnDanger:hover {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: var(--c-red);
+}
+
+.btnDanger:active {
+  transform: scale(0.98);
+}
+
+.btnDanger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Ghost кнопка ── */
+.btnGhost {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  align-self: flex-start;
+}
+
+.btnGhost:hover {
+  background: var(--c-surface2);
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+}
+
+.btnGhost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Секция запроса на удаление ── */
+.deletionSection {
+  border-top: 1px solid var(--c-border);
+  padding-top: 18px;
+}
+
+.deletionPending {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 22px 22px;
+}
+
+.deletionStatusText {
+  font-size: 14px;
+  color: var(--c-text2);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.deletionReason {
+  font-size: 13px;
+  color: var(--c-text3);
+  margin: 0;
+  font-style: italic;
+}
+
+.deletionHint {
+  font-size: 13px;
+  color: var(--c-text3);
+  margin: 0;
+  line-height: 1.5;
 }

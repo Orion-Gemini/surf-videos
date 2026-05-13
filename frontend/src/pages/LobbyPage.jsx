@@ -4,6 +4,7 @@ import api from "../api";
 import { useAuthStore } from "../store/auth";
 import { useThemeStore } from "../store/theme";
 import styles from "./LobbyPage.module.css";
+import LegalFooter from "../components/LegalFooter";
 
 function useCountUp(target, duration = 700) {
   const [value, setValue] = useState(0);
@@ -89,9 +90,11 @@ export default function LobbyPage() {
   // Admin state
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminRooms, setAdminRooms] = useState([]);
+  const [adminDeletionRequests, setAdminDeletionRequests] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState("");
   const [userSearch, setUserSearch] = useState("");
+  const [reasonModal, setReasonModal] = useState(null); // string | null
   const [roomSearch, setRoomSearch] = useState("");
 
   async function loadRooms() {
@@ -117,12 +120,14 @@ export default function LobbyPage() {
     setAdminLoading(true);
     setAdminError("");
     try {
-      const [usersRes, roomsRes] = await Promise.all([
+      const [usersRes, roomsRes, delRes] = await Promise.all([
         api.get("/admin/users"),
         api.get("/admin/rooms"),
+        api.get("/admin/deletion-requests"),
       ]);
       setAdminUsers(usersRes.data);
       setAdminRooms(roomsRes.data);
+      setAdminDeletionRequests(delRes.data);
     } catch {
       setAdminError("Ошибка загрузки данных");
     } finally {
@@ -255,6 +260,35 @@ export default function LobbyPage() {
         }
       }
     });
+  }
+
+  function handleApproveDeletion(reqId, username) {
+    askConfirm({
+      icon: "💀",
+      title: "Подтвердить удаление?",
+      message: `Аккаунт @${username} будет удалён безвозвратно вместе со всеми данными.`,
+      confirmLabel: "Удалить",
+      onConfirm: async () => {
+        try {
+          await api.post(`/admin/deletion-requests/${reqId}/approve`);
+          setAdminDeletionRequests(prev => prev.filter(r => r.id !== reqId));
+          setAdminUsers(prev => prev.filter(u => u.username !== username));
+        } catch (err) {
+          alert(err.response?.data?.detail || "Ошибка");
+        }
+      }
+    });
+  }
+
+  async function handleRejectDeletion(reqId) {
+    try {
+      await api.post(`/admin/deletion-requests/${reqId}/reject`);
+      setAdminDeletionRequests(prev =>
+        prev.map(r => r.id === reqId ? { ...r, status: "rejected" } : r)
+      );
+    } catch (err) {
+      alert(err.response?.data?.detail || "Ошибка");
+    }
   }
 
   function handleLogout() {
@@ -572,6 +606,7 @@ export default function LobbyPage() {
                       value={userSearch}
                       onChange={e => setUserSearch(e.target.value)}
                     />
+                    <div className={styles.adminTableWrap}>
                     <div className={styles.adminTable}>
                       <div className={`${styles.adminTableHead} ${styles.adminRowUsers}`}>
                         <span>ID</span>
@@ -621,6 +656,7 @@ export default function LobbyPage() {
                       ))}
                       {filteredUsers.length === 0 && <p className={styles.adminEmpty}>Ничего не найдено</p>}
                     </div>
+                    </div>
                   </section>
 
                   <section className={styles.adminSection}>
@@ -634,6 +670,7 @@ export default function LobbyPage() {
                       value={roomSearch}
                       onChange={e => setRoomSearch(e.target.value)}
                     />
+                    <div className={styles.adminTableWrap}>
                     <div className={styles.adminTable}>
                       <div className={`${styles.adminTableHead} ${styles.adminRowRooms}`}>
                         <span>ID</span>
@@ -667,6 +704,54 @@ export default function LobbyPage() {
                       ))}
                       {filteredRooms.length === 0 && <p className={styles.adminEmpty}>Ничего не найдено</p>}
                     </div>
+                    </div>
+                  </section>
+
+                  <section className={styles.adminSection}>
+                    <div className={styles.adminSectionHeader}>
+                      <h2 className={styles.sectionTitle}>Запросы на удаление</h2>
+                      <span className={styles.adminCount}>
+                        {adminDeletionRequests.filter(r => r.status === "pending").length} ожидают
+                      </span>
+                    </div>
+                    <div className={styles.adminTableWrap}>
+                    <div className={styles.adminTable}>
+                      <div className={`${styles.adminTableHead} ${styles.adminRowTickets}`}>
+                        <span>Пользователь</span>
+                        <span>Email</span>
+                        <span>Причина</span>
+                        <span>Дата</span>
+                        <span>Статус</span>
+                        <span>Действия</span>
+                      </div>
+                      {adminDeletionRequests.map((r, i) => (
+                        <div key={r.id} className={`${styles.adminTableRow} ${styles.adminRowTickets}`} style={{ animationDelay: `${i * 45}ms` }}>
+                          <span className={styles.adminUsername}>@{r.username}</span>
+                          <span className={styles.adminEmail}>{r.email}</span>
+                          <span>
+                            {r.reason
+                              ? <button className={styles.btnEnter} onClick={() => setReasonModal(r.reason)}>Просмотреть</button>
+                              : <span className={styles.adminDash}>—</span>}
+                          </span>
+                          <span className={styles.adminEmail}>{new Date(r.created_at).toLocaleDateString("ru-RU")}</span>
+                          <span>
+                            {r.status === "pending" && <span className={styles.badgeTicketPending}>Ожидает</span>}
+                            {r.status === "approved" && <span className={styles.badgeTicketApproved}>Одобрен</span>}
+                            {r.status === "rejected" && <span className={styles.badgeTicketRejected}>Отклонён</span>}
+                          </span>
+                          <span className={styles.adminActions}>
+                            {r.status === "pending" && (
+                              <>
+                                <button className={styles.btnPromote} onClick={() => handleApproveDeletion(r.id, r.username)}>Одобрить</button>
+                                <button className={styles.btnDemote} onClick={() => handleRejectDeletion(r.id)}>Отклонить</button>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                      {adminDeletionRequests.length === 0 && <p className={styles.adminEmpty}>Заявок нет</p>}
+                    </div>
+                    </div>
                   </section>
                 </>
               );
@@ -674,6 +759,21 @@ export default function LobbyPage() {
           </div>
         )}
       </main>
+
+      <LegalFooter />
+
+      {reasonModal && (
+        <div className={styles.modalOverlay} onClick={() => setReasonModal(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalIcon}>💬</div>
+            <h3 className={styles.modalTitle}>Причина удаления</h3>
+            <p className={styles.modalMessage}>{reasonModal}</p>
+            <div className={styles.modalActions}>
+              <button className={styles.modalCancel} onClick={() => setReasonModal(null)}>Закрыть</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmModal && (
         <div className={styles.modalOverlay} onClick={() => setConfirmModal(null)}>

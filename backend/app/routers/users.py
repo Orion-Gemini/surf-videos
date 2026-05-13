@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -6,7 +7,22 @@ from app.services.deps import get_current_user
 from app.services.auth import verify_password, hash_password
 from app.models.user import User
 from app.models.room import Room, RoomMember
+from app.models.deletion_request import DeletionRequest
 from app.schemas.user import UserProfile, PasswordChange, AvatarUpdate
+from pydantic import BaseModel
+
+
+class DeletionRequestIn(BaseModel):
+    reason: str | None = None
+
+
+class DeletionRequestOut(BaseModel):
+    id: int
+    reason: str | None
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -66,3 +82,56 @@ async def update_avatar(
     db.add(current_user)
     await db.commit()
     return {"detail": "Аватар обновлён"}
+
+
+@router.post("/me/deletion-request", response_model=DeletionRequestOut, status_code=201)
+async def create_deletion_request(
+    data: DeletionRequestIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    existing = await db.execute(
+        select(DeletionRequest).where(
+            DeletionRequest.user_id == current_user.id,
+            DeletionRequest.status == "pending",
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Заявка уже отправлена и ожидает рассмотрения")
+    req = DeletionRequest(user_id=current_user.id, reason=data.reason or None, status="pending")
+    db.add(req)
+    await db.commit()
+    await db.refresh(req)
+    return req
+
+
+@router.get("/me/deletion-request", response_model=DeletionRequestOut | None)
+async def get_my_deletion_request(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(DeletionRequest)
+        .where(DeletionRequest.user_id == current_user.id)
+        .order_by(DeletionRequest.created_at.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
+@router.delete("/me/deletion-request", status_code=204)
+async def cancel_deletion_request(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(DeletionRequest).where(
+            DeletionRequest.user_id == current_user.id,
+            DeletionRequest.status == "pending",
+        )
+    )
+    req = result.scalar_one_or_none()
+    if not req:
+        raise HTTPException(status_code=404, detail="Активная заявка не найдена")
+    await db.delete(req)
+    await db.commit()

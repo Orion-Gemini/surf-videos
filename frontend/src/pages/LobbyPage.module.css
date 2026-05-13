@@ -611,11 +611,28 @@
 .adminTableHead.adminRowUsers,
 .adminTableRow.adminRowUsers {
   grid-template-columns: 48px 190px 1fr 130px 230px;
+  min-width: 640px;
 }
 
 .adminTableHead.adminRowRooms,
 .adminTableRow.adminRowRooms {
   grid-template-columns: 48px 1fr 70px 100px 130px 180px;
+  min-width: 580px;
+}
+
+.adminTableHead.adminRowTickets,
+.adminTableRow.adminRowTickets {
+  grid-template-columns: 1fr 1.2fr 1fr 90px 100px 190px;
+}
+
+.adminTicketReasonShort {
+  display: block;
+  font-size: 13px;
+  color: var(--c-text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* Avatar initials in user table */
@@ -708,13 +725,19 @@
   border: 1px solid var(--c-border);
 }
 
+.adminTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+}
+
 .adminTable {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--c-border);
   border-radius: 14px;
   overflow: hidden;
   background: var(--c-surface);
+  min-width: max-content;
 }
 
 .adminTableHead {
@@ -826,6 +849,48 @@
   background: rgba(248, 113, 113, 0.1);
   color: var(--c-red);
   border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+/* Ticket status badges */
+.badgeTicketPending {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(223, 160, 110, 0.15);
+  color: var(--c-accent);
+  border: 1px solid rgba(223, 160, 110, 0.3);
+}
+
+.badgeTicketApproved {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(76, 175, 80, 0.12);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+}
+
+.badgeTicketRejected {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--c-text3);
+  border: 1px solid var(--c-border);
+}
+
+.adminTicketReason {
+  font-size: 13px;
+  color: var(--c-text2);
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 /* Banned row */
@@ -1000,6 +1065,8 @@
   margin: 0 0 24px;
   text-align: center;
   line-height: 1.55;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .modalActions {
