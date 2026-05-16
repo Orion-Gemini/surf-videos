@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Серфер v3 — исправленный</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 32px 24px 48px;
+}
+h1 { text-align: center; font-size: 18px; color: #9DB2BF; margin-bottom: 6px; font-weight: 500; }
+.hint { text-align: center; font-size: 13px; color: #526D82; margin-bottom: 32px; }
+
+.slide {
+  max-width: 900px; margin: 0 auto;
+  height: 480px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #EDE8D8;
+}
+
+/* ── Контент ── */
+.hero-content {
+  position: relative; z-index: 5; text-align: center; padding: 0 24px;
+}
+.badge {
+  display: inline-block; padding: 5px 14px; border-radius: 100px;
+  background: rgba(223,160,110,0.15); border: 1px solid rgba(223,160,110,0.3);
+  color: #DFA06E; font-size: 12px; font-weight: 600; margin-bottom: 16px;
+}
+.h-title { font-size: 38px; font-weight: 800; color: #27374D; letter-spacing: -1px; line-height: 1.15; margin-bottom: 10px; }
+.h-title span { color: #DFA06E; }
+.h-sub { font-size: 14px; color: #526D82; margin-bottom: 22px; line-height: 1.6; }
+.btn {
+  display: inline-block; padding: 13px 28px; border-radius: 10px;
+  background: #DFA06E; color: #fff; font-size: 15px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(223,160,110,0.4); cursor: default;
+}
+
+/* ── Волна-плеер (canvas) ── */
+#waveCanvas {
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 210px;
+  z-index: 3;
+}
+
+/* ── Контролы плеера поверх волны ── */
+.player-controls {
+  position: absolute; bottom: 14px; left: 0; right: 0; z-index: 7;
+  display: flex; align-items: center; gap: 14px; padding: 0 36px;
+}
+.pc { font-size: 15px; color: rgba(255,255,255,0.8); cursor: default; user-select: none; }
+.progress {
+  flex: 1; height: 3px; background: rgba(255,255,255,0.2);
+  border-radius: 2px; overflow: hidden;
+}
+.progress-fill { width: 40%; height: 100%; background: #fff; border-radius: 2px; }
+.pc-time { font-size: 10px; color: rgba(255,255,255,0.5); font-family: monospace; margin-left: auto; }
+
+/* ── Серфер (canvas) ── */
+#surferCanvas {
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 210px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* ── Брызги ── */
+.spray-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(157,178,191,0.6);
+  pointer-events: none;
+  z-index: 6;
+  animation: sprayFly 0.7s ease-out forwards;
+}
+@keyframes sprayFly {
+  0%   { opacity: 0.8; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+}
+</style>
+</head>
+<body>
+
+<h1>Вариант 3 — серфер на волне-плеере (исправлен)</h1>
+<p class="hint">Серфер следует по гребню волны, волна без сброса</p>
+
+<div class="slide" id="slide">
+
+  <div class="hero-content">
+    <div class="badge">🌊 Совместный просмотр</div>
+    <div class="h-title">Смотрите видео<br/><span>вместе с друзьями</span></div>
+    <div class="h-sub">Создайте комнату, пригласите друзей<br/>и наслаждайтесь синхронным просмотром</div>
+    <div class="btn">Создать комнату</div>
+  </div>
+
+  <canvas id="waveCanvas"></canvas>
+  <canvas id="surferCanvas"></canvas>
+
+  <div class="player-controls">
+    <span class="pc">⏮</span>
+    <span class="pc">⏸</span>
+    <span class="pc">⏭</span>
+    <div class="progress"><div class="progress-fill"></div></div>
+    <span class="pc-time">12:34 / 45:00</span>
+    <span class="pc">🔊</span>
+  </div>
+
+</div>
+
+<script>
+const slide       = document.getElementById('slide');
+const waveCanvas  = document.getElementById('waveCanvas');
+const surferCanvas= document.getElementById('surferCanvas');
+const wCtx        = waveCanvas.getContext('2d');
+const sCtx        = surferCanvas.getContext('2d');
+
+// ── Параметры волны ──────────────────────────────
+const WAVE_SPEED   = 0.6;   // px за кадр (скорость сдвига)
+const PERIOD       = 420;   // длина волны в px
+const AMP1         = 16;    // амплитуда основной волны
+const AMP2         = 9;     // амплитуда второй волны
+const BASE1        = 0.58;  // baseline первой волны — ниже, больше места для серфера
+const BASE2        = 0.74;  // baseline второй волны
+
+let waveOffset = 0;
+let surferX    = -120;
+const SURFER_SPEED = 1.4;
+
+// ── Волновая функция (то же что рисуем) ──────────
+function waveY(x, offset, canvasH, amp, base, phase = 0) {
+  return canvasH * base - amp * Math.sin((x + offset + phase) * (2 * Math.PI / PERIOD));
+}
+
+// ── Resize ──────────────────────────────────────
+function resize() {
+  const W = slide.clientWidth;
+  const H = 210;
+  [waveCanvas, surferCanvas].forEach(c => { c.width = W; c.height = H; });
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Рисуем волны ────────────────────────────────
+function drawWaves(W, H) {
+  wCtx.clearRect(0, 0, W, H);
+
+  // Волна 1 (тёмно-синяя, нижний слой)
+  wCtx.beginPath();
+  wCtx.moveTo(0, H);
+  for (let x = 0; x <= W; x++) {
+    wCtx.lineTo(x, waveY(x, waveOffset, H, AMP1, BASE1));
+  }
+  wCtx.lineTo(W, H);
+  wCtx.closePath();
+  wCtx.fillStyle = '#27374D';
+  wCtx.fill();
+
+  // Волна 2 (чуть светлее, поверх)
+  wCtx.beginPath();
+  wCtx.moveTo(0, H);
+  for (let x = 0; x <= W; x++) {
+    wCtx.lineTo(x, waveY(x, waveOffset * 0.65, H, AMP2, BASE2, 90));
+  }
+  wCtx.lineTo(W, H);
+  wCtx.closePath();
+  wCtx.fillStyle = '#304560';
+  wCtx.fill();
+
+  // Гребень волны 1 — светлая полоска пены
+  wCtx.beginPath();
+  wCtx.moveTo(0, waveY(0, waveOffset, H, AMP1, BASE1));
+  for (let x = 1; x <= W; x++) {
+    wCtx.lineTo(x, waveY(x, waveOffset, H, AMP1, BASE1));
+  }
+  wCtx.strokeStyle = 'rgba(157,178,191,0.35)';
+  wCtx.lineWidth = 2;
+  wCtx.stroke();
+}
+
+// ── Рисуем серфера ───────────────────────────────
+function drawSurfer(W, H) {
+  sCtx.clearRect(0, 0, W, H);
+
+  // Позиция по волне: Y серфера = Y гребня в точке X
+  const sy = waveY(surferX, waveOffset, H, AMP1, BASE1);
+
+  // Угол наклона = производная волны (тангенс угла)
+  const dx = 1;
+  const dy = waveY(surferX + dx, waveOffset, H, AMP1, BASE1) - sy;
+  const angle = Math.atan2(dy, dx);
+
+  sCtx.save();
+  sCtx.translate(surferX, sy);
+  sCtx.rotate(angle);
+
+  // ── Доска ──
+  sCtx.beginPath();
+  sCtx.ellipse(0, 0, 46, 7, 0, 0, Math.PI * 2);
+  sCtx.fillStyle = '#DFA06E';
+  sCtx.fill();
+  // Плавник
+  sCtx.beginPath();
+  sCtx.moveTo(32, 4); sCtx.lineTo(42, 16); sCtx.lineTo(22, 6);
+  sCtx.closePath();
+  sCtx.fillStyle = '#C98A56';
+  sCtx.fill();
+
+  // ── Тело серфера (поза: колени согнуты, руки в стороны) ──
+  const bx = -6, by = -8; // точка опоры на доске
+
+  // Ноги (согнутые колени)
+  sCtx.lineCap = 'round';
+  sCtx.lineWidth = 5;
+  sCtx.strokeStyle = '#27374D';
+  // Левая нога
+  sCtx.beginPath();
+  sCtx.moveTo(bx - 6, by);
+  sCtx.quadraticCurveTo(bx - 14, by - 14, bx - 6, by - 26);
+  sCtx.stroke();
+  // Правая нога
+  sCtx.beginPath();
+  sCtx.moveTo(bx + 4, by);
+  sCtx.quadraticCurveTo(bx + 14, by - 12, bx + 4, by - 24);
+  sCtx.stroke();
+
+  // Туловище
+  sCtx.lineWidth = 5;
+  sCtx.beginPath();
+  sCtx.moveTo(bx - 1, by - 24);
+  sCtx.lineTo(bx, by - 42);
+  sCtx.stroke();
+
+  // Руки (раскинуты для баланса)
+  sCtx.lineWidth = 4;
+  // Левая
+  sCtx.beginPath();
+  sCtx.moveTo(bx, by - 36);
+  sCtx.lineTo(bx - 22, by - 28);
+  sCtx.stroke();
+  // Правая
+  sCtx.beginPath();
+  sCtx.moveTo(bx, by - 36);
+  sCtx.lineTo(bx + 20, by - 42);
+  sCtx.stroke();
+
+  // Голова
+  sCtx.beginPath();
+  sCtx.arc(bx, by - 50, 9, 0, Math.PI * 2);
+  sCtx.fillStyle = '#DFA06E';
+  sCtx.fill();
+
+  sCtx.restore();
+
+  // ── Брызги за серфером ──
+  const sprayX = surferX - 46;
+  const sprayY = sy;
+  for (let i = 0; i < 3; i++) {
+    sCtx.beginPath();
+    sCtx.arc(
+      sprayX - i * 8 + Math.sin(waveOffset * 0.1 + i) * 3,
+      sprayY - 4 + Math.cos(waveOffset * 0.15 + i) * 4,
+      2 + i * 0.8, 0, Math.PI * 2
+    );
+    sCtx.fillStyle = `rgba(157,178,191,${0.5 - i * 0.12})`;
+    sCtx.fill();
+  }
+}
+
+// ── Главный цикл ────────────────────────────────
+function loop() {
+  const W = waveCanvas.width;
+  const H = waveCanvas.height;
+
+  waveOffset += WAVE_SPEED;
+  surferX    += SURFER_SPEED;
+  if (surferX > W + 120) surferX = -120;
+
+  drawWaves(W, H);
+  drawSurfer(W, H);
+
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

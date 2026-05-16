@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import api from "../api";
 import { useAuthStore } from "../store/auth";
 import { useThemeStore } from "../store/theme";
@@ -7,7 +7,8 @@ import styles from "./AuthPage.module.css";
 import { PRIVACY_TEXT, LICENSE_TEXT } from "../legal";
 
 export default function AuthPage() {
-  const [mode, setMode] = useState("login");
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState(searchParams.get("tab") === "register" ? "register" : "login");
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -126,6 +127,7 @@ export default function AuthPage() {
           <button className={`${styles.btn} ${styles.btnPulse}`} type="submit" disabled={loading}>
             {loading ? "..." : mode === "login" ? "Войти" : "Зарегистрироваться"}
           </button>
+          <Link to="/landing" className={styles.backLink}>Вернуться на главную</Link>
         </form>
       </div>
 

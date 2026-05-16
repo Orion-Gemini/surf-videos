@@ -144,8 +144,8 @@ export default function ProfilePage() {
   }
 
   function handleLogout() {
-    logout();
     goTo("/auth");
+    logout();
   }
 
   const initials = user?.username?.slice(0, 2).toUpperCase() || "??";

@@ -97,6 +97,25 @@ async def save_timeline(room_id: int, video_id: str, data: list):
 
 # ── Обработчики WS-событий ───────────────────────────────────────────────────
 
+async def _broadcast_video_link(room_id: int, video_id: str, user: User, db: AsyncSession):
+    """Отправляет в чат системное сообщение со ссылкой на видео."""
+    url = f"https://rutube.ru/video/{video_id}/"
+    text = f"▶ Начинаем смотреть: {url}"
+    msg = Message(room_id=room_id, user_id=user.id, text=text)
+    db.add(msg)
+    await db.commit()
+    await db.refresh(msg)
+    await manager.broadcast(room_id, {
+        "type": "chat",
+        "id": msg.id,
+        "user_id": user.id,
+        "username": user.username,
+        "avatar": user.avatar,
+        "text": msg.text,
+        "created_at": msg.created_at.isoformat(),
+    })
+
+
 async def handle_message(event: dict, room_id: int, user: User, db: AsyncSession):
     """Сохраняем сообщение в БД и рассылаем всем."""
     text = event.get("text", "").strip()
@@ -207,6 +226,8 @@ async def handle_player_event(event: dict, room_id: int, user: User, db: AsyncSe
             "ready_users": [],
             "online_count": len(manager.get_connected_user_ids(room_id)),
         })
+        if state["video_id"]:
+            await _broadcast_video_link(room_id, state["video_id"], user, db)
 
 
 async def handle_reaction(event: dict, room_id: int, user: User, db: AsyncSession):
@@ -312,6 +333,7 @@ async def handle_queue_event(event: dict, room_id: int, user: User, db: AsyncSes
             "ready_users": [],
             "online_count": len(manager.get_connected_user_ids(room_id)),
         })
+        await _broadcast_video_link(room_id, next_video, user, db)
 
 
 async def send_initial_state(room_id: int, user: User, db: AsyncSession):

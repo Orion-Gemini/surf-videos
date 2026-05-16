@@ -292,8 +292,8 @@ export default function LobbyPage() {
   }
 
   function handleLogout() {
-    logout();
     goTo("/auth");
+    logout();
   }
 
   // Счётчики для admin-панели

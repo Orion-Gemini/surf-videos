@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Фон — варианты анимации</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #fff;
+    padding: 32px 24px 48px;
+  }
+  h1 { text-align: center; font-size: 18px; color: #9DB2BF; margin-bottom: 8px; font-weight: 500; }
+  .hint { text-align: center; font-size: 13px; color: #526D82; margin-bottom: 32px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .variant-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #9DB2BF;
+    margin-bottom: 10px; padding-left: 4px;
+  }
+
+  .slide {
+    height: 340px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 24px;
+  }
+  .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .title { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+  .sub { font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+  .btn {
+    display: inline-block; padding: 11px 26px;
+    border-radius: 9px; background: #DFA06E;
+    color: #fff; font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(223,160,110,0.4);
+    cursor: default;
+  }
+
+  /* ════════════════════════════════
+     ВАРИАНТ 1 — SVG-волны снизу
+  ════════════════════════════════ */
+  .v1 { background: #EDE8D8; }
+  .v1 .label { color: #DFA06E; }
+  .v1 .title { color: #27374D; }
+  .v1 .sub { color: #526D82; }
+
+  .waves-wrap {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 100px;
+    overflow: hidden;
+  }
+  .waves-svg { width: 200%; height: 100%; animation: wavesScroll 6s linear infinite; }
+  .waves-svg path { fill: rgba(82,109,130,0.12); }
+  .waves-svg2 { position: absolute; bottom: 0; left: 0; width: 200%; height: 70px; animation: wavesScroll 9s linear infinite reverse; }
+  .waves-svg2 path { fill: rgba(223,160,110,0.1); }
+
+  @keyframes wavesScroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ════════════════════════════════
+     ВАРИАНТ 2 — Пузыри
+  ════════════════════════════════ */
+  .v2 { background: #2A3F5C; }
+  .v2 .label { color: #9DB2BF; }
+  .v2 .title { color: #EBF1F5; }
+  .v2 .sub { color: #9DB2BF; }
+
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(157,178,191,0.3);
+    background: rgba(157,178,191,0.05);
+    animation: bubbleRise linear infinite;
+    bottom: -60px;
+  }
+  .b1  { width:14px; height:14px; left:8%;   animation-duration:7s;  animation-delay:0s;   }
+  .b2  { width:8px;  height:8px;  left:18%;  animation-duration:9s;  animation-delay:-2s;  }
+  .b3  { width:20px; height:20px; left:28%;  animation-duration:11s; animation-delay:-4s;  }
+  .b4  { width:6px;  height:6px;  left:40%;  animation-duration:8s;  animation-delay:-1s;  }
+  .b5  { width:16px; height:16px; left:52%;  animation-duration:10s; animation-delay:-5s;  }
+  .b6  { width:10px; height:10px; left:63%;  animation-duration:7s;  animation-delay:-3s;  }
+  .b7  { width:18px; height:18px; left:74%;  animation-duration:12s; animation-delay:-6s;  }
+  .b8  { width:7px;  height:7px;  left:85%;  animation-duration:9s;  animation-delay:-1.5s;}
+  .b9  { width:12px; height:12px; left:92%;  animation-duration:8s;  animation-delay:-4.5s;}
+
+  @keyframes bubbleRise {
+    0%   { transform: translateY(0) translateX(0);   opacity: 0; }
+    10%  { opacity: 0.8; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-380px) translateX(20px); opacity: 0; }
+  }
+
+  /* ════════════════════════════════
+     ВАРИАНТ 3 — Градиент-прибой
+  ════════════════════════════════ */
+  .v3 { background: #EDE8D8; animation: tidePulse 6s ease-in-out infinite; }
+  .v3 .label { color: #DFA06E; }
+  .v3 .title { color: #27374D; }
+  .v3 .sub { color: #526D82; }
+
+  @keyframes tidePulse {
+    0%   { background: #EDE8D8; }
+    33%  { background: #DDE8ED; }
+    66%  { background: #E8EDD8; }
+    100% { background: #EDE8D8; }
+  }
+
+  .tide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(82,109,130,0.08) 100%);
+    animation: tideWash 4s ease-in-out infinite alternate;
+  }
+  @keyframes tideWash {
+    from { opacity: 0.3; transform: scaleY(0.8); }
+    to   { opacity: 1;   transform: scaleY(1.1); }
+  }
+
+  /* ════════════════════════════════
+     ВАРИАНТ 4 — Плавающие линии
+  ════════════════════════════════ */
+  .v4 { background: #EDE8D8; }
+  .v4 .label { color: #DFA06E; }
+  .v4 .title { color: #27374D; }
+  .v4 .sub { color: #526D82; }
+
+  .line-wrap {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .wave-line {
+    position: absolute;
+    left: -10%;
+    width: 120%;
+    height: 2px;
+    border-radius: 1px;
+    opacity: 0;
+    animation: lineFloat ease-in-out infinite;
+  }
+  .wl1 { top: 20%; background: rgba(82,109,130,0.18);  animation-duration:8s;  animation-delay:0s;   }
+  .wl2 { top: 35%; background: rgba(223,160,110,0.15); animation-duration:11s; animation-delay:-3s;  }
+  .wl3 { top: 52%; background: rgba(82,109,130,0.12);  animation-duration:9s;  animation-delay:-5s;  }
+  .wl4 { top: 68%; background: rgba(223,160,110,0.1);  animation-duration:13s; animation-delay:-2s;  }
+  .wl5 { top: 82%; background: rgba(82,109,130,0.09);  animation-duration:10s; animation-delay:-7s;  }
+
+  @keyframes lineFloat {
+    0%   { transform: translateX(-5%) scaleY(1)   skewX(0deg);  opacity: 0; }
+    15%  { opacity: 1; }
+    50%  { transform: translateX(3%)  scaleY(2.5) skewX(-2deg); opacity: 0.8; }
+    85%  { opacity: 0.5; }
+    100% { transform: translateX(-5%) scaleY(1)   skewX(0deg);  opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Варианты фоновой анимации</h1>
+<p class="hint">Все четыре — чистый CSS, без библиотек</p>
+
+<div class="grid">
+
+  <!-- Вариант 1 -->
+  <div>
+    <div class="variant-label">Вариант 1 — SVG-волны снизу</div>
+    <div class="slide v1">
+      <div class="waves-wrap">
+        <svg class="waves-svg" viewBox="0 0 1440 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1440,0 1440,40 L1440,100 L0,100 Z"/>
+        </svg>
+        <svg class="waves-svg2" viewBox="0 0 1440 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;left:0;width:200%;height:70px;">
+          <path d="M0,30 C200,60 400,0 600,30 C800,60 1000,0 1200,30 C1300,50 1380,20 1440,30 L1440,70 L0,70 Z"/>
+        </svg>
+      </div>
+      <div class="content">
+        <div class="label">Как это работает</div>
+        <div class="title">Три шага до просмотра</div>
+        <div class="sub">Волны плавно движутся снизу,<br/>подчёркивая тему серфинга</div>
+        <div class="btn">Начать бесплатно</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вариант 2 -->
+  <div>
+    <div class="variant-label">Вариант 2 — Пузыри (тёмный фон)</div>
+    <div class="slide v2">
+      <div class="bubble b1"></div>
+      <div class="bubble b2"></div>
+      <div class="bubble b3"></div>
+      <div class="bubble b4"></div>
+      <div class="bubble b5"></div>
+      <div class="bubble b6"></div>
+      <div class="bubble b7"></div>
+      <div class="bubble b8"></div>
+      <div class="bubble b9"></div>
+      <div class="content">
+        <div class="label" style="color:#9DB2BF">Как это работает</div>
+        <div class="title">Три шага до просмотра</div>
+        <div class="sub">Пузыри всплывают снизу вверх,<br/>как под водой</div>
+        <div class="btn">Начать бесплатно</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вариант 3 -->
+  <div>
+    <div class="variant-label">Вариант 3 — Градиент-прибой</div>
+    <div class="slide v3">
+      <div class="tide-overlay"></div>
+      <div class="content">
+        <div class="label">Как это работает</div>
+        <div class="title">Три шага до просмотра</div>
+        <div class="sub">Фон медленно меняет оттенок —<br/>песок, вода, трава, снова песок</div>
+        <div class="btn">Начать бесплатно</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вариант 4 -->
+  <div>
+    <div class="variant-label">Вариант 4 — Плавающие линии</div>
+    <div class="slide v4">
+      <div class="line-wrap">
+        <div class="wave-line wl1"></div>
+        <div class="wave-line wl2"></div>
+        <div class="wave-line wl3"></div>
+        <div class="wave-line wl4"></div>
+        <div class="wave-line wl5"></div>
+      </div>
+      <div class="content">
+        <div class="label">Как это работает</div>
+        <div class="title">Три шага до просмотра</div>
+        <div class="sub">Горизонтальные линии колышутся<br/>как поверхность воды</div>
+        <div class="btn">Начать бесплатно</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

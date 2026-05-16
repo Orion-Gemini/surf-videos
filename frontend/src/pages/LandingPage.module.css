@@ -1,0 +1,732 @@
+.page {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  background: var(--c-bg);
+  color: var(--c-text);
+}
+
+/* ── Nav ── */
+.nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 64px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navLogo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.navTitle {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.navAccent {
+  color: var(--c-accent);
+}
+
+.navActions {
+  display: flex;
+  gap: 10px;
+}
+
+.navBtn {
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--c-border2);
+  background: transparent;
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.navBtn:hover {
+  background: var(--c-surface2);
+  border-color: var(--c-accent);
+}
+
+.navThemeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--c-border);
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.navThemeBtn:hover {
+  background: var(--c-surface2);
+}
+
+.navBtnPrimary {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: #fff;
+}
+
+.navBtnPrimary:hover {
+  background: var(--c-accent-h);
+  border-color: var(--c-accent-h);
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 64px 40px 210px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  scroll-snap-align: start;
+}
+
+/* ── Hero canvas (серфер + волны-плеер) ── */
+.heroCanvasWrap {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 210px;
+  pointer-events: none;
+}
+
+.heroWaveCanvas,
+.heroSurferCanvas {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+.heroSurferCanvas { z-index: 2; }
+
+.heroPlayerBar {
+  position: absolute;
+  bottom: 10px; left: 0; right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 32px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.75);
+}
+
+.heroProgressWrap {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.heroProgressFill {
+  width: 40%;
+  height: 100%;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.heroTime {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  font-family: monospace;
+  margin-left: auto;
+}
+
+/* ── CSS-переменная для цвета волн-разделителей ── */
+:root          { --c-wave: rgba(39,55,77,0.12); }
+[data-theme="dark"] { --c-wave: rgba(157,178,191,0.1); }
+
+/* ── Волны-разделители (WaveTop / WaveBottom) ── */
+.waveTopWrap {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 70px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.waveTopSvg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 200%; height: 100%;
+  animation: waveScroll 9s linear infinite reverse;
+}
+
+.waveTopSvg2 {
+  animation-duration: 13s;
+  animation-direction: normal;
+}
+
+.waveBottomWrap {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.waveBottomSvg {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 200%; height: 100%;
+  animation: waveScroll 8s linear infinite;
+}
+
+.waveBottomSvg2 {
+  animation-duration: 12s;
+  animation-direction: reverse;
+}
+
+@keyframes waveScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  animation: heroFadeIn 0.7s ease both;
+}
+
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.heroBadge {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 100px;
+  background: var(--c-accent-dim);
+  border: 1px solid var(--c-accent-glow);
+  color: var(--c-accent);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  letter-spacing: 0.3px;
+}
+
+.heroTitle {
+  margin: 0 0 20px;
+  font-size: clamp(34px, 6vw, 56px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  color: var(--c-text);
+}
+
+.heroAccent {
+  color: var(--c-accent);
+}
+
+.heroSub {
+  margin: 0 0 36px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--c-text2);
+}
+
+.heroCta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Scroll reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* карточки внутри reveal наследуют задержку через inline style */
+.reveal .stepCard,
+.reveal .featureCard {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.45s ease, transform 0.45s ease, border-color 0.2s, box-shadow 0.2s;
+}
+
+.reveal.visible .stepCard,
+.reveal.visible .featureCard {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Buttons ── */
+.ctaPrimary {
+  padding: 13px 28px;
+  border-radius: 10px;
+  border: none;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px var(--c-accent-glow);
+}
+
+.ctaPrimary:hover {
+  background: var(--c-accent-h);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--c-accent-glow);
+}
+
+.ctaPrimary:active {
+  transform: translateY(0);
+}
+
+.ctaSecondary {
+  background: none;
+  border: none;
+  color: var(--c-text2);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.ctaSecondary:hover {
+  color: var(--c-accent);
+}
+
+/* ── Sections ── */
+.section {
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sectionSteps { background: var(--c-surface); }
+.sectionAlt   { background: var(--c-bg); }
+
+.sectionCta {
+  background: var(--c-accent-dim);
+  border-top: 1px solid var(--c-accent-glow);
+  text-align: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.footerSlide {
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  border-top: 1px solid var(--c-border);
+}
+
+.sectionLabel {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  margin: 0 0 10px;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0 0 52px;
+  color: var(--c-text);
+}
+
+/* ── Steps ── */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.stepCard {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 32px 28px;
+  text-align: center;
+  position: relative;
+}
+
+.stepCard:hover {
+  border-color: var(--c-accent);
+  box-shadow: 0 8px 32px var(--c-accent-dim);
+}
+
+.stepNumber {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepIcon {
+  font-size: 38px;
+  margin: 8px 0 16px;
+}
+
+.stepTitle {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--c-text);
+}
+
+.stepDesc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text2);
+  margin: 0;
+}
+
+/* ── Features ── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.featureCard {
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  padding: 24px 22px;
+}
+
+.featureCard:hover {
+  border-color: var(--c-accent);
+  transform: translateY(-2px) !important;
+}
+
+.featureIcon {
+  font-size: 26px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.featureTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--c-text);
+}
+
+.featureDesc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text2);
+  margin: 0;
+}
+
+/* ── Platform ── */
+.platformLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.platformInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.platformInfo .sectionLabel {
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.platformHeading {
+  font-size: clamp(26px, 3.5vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  margin: 0 0 16px;
+  color: var(--c-text);
+}
+
+.platformDesc {
+  font-size: 15px;
+  color: var(--c-text2);
+  margin: 0 0 24px;
+  line-height: 1.65;
+}
+
+.platformUrlDemo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 28px;
+}
+
+.platformUrlIcon { font-size: 15px; }
+
+.platformUrlText {
+  font-size: 13px;
+  color: var(--c-text3);
+  font-family: monospace;
+}
+
+/* CSS-макет плеера */
+.playerMockup {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+}
+
+.playerScreen {
+  background: #1a1a2e;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+
+.playerPlayBtn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(223,160,110,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #fff;
+  padding-left: 3px;
+}
+
+.playerTitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.3px;
+}
+
+.playerBar {
+  padding: 12px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.playerProgress {
+  height: 3px;
+  background: var(--c-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.playerProgressFill {
+  width: 38%;
+  height: 100%;
+  background: var(--c-accent);
+  border-radius: 2px;
+}
+
+.playerControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--c-text2);
+}
+
+.playerTime {
+  font-size: 11px;
+  color: var(--c-text3);
+  margin-left: auto;
+  font-family: monospace;
+}
+
+.playerVolume { margin-left: 4px; }
+
+.playerUsers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+}
+
+.playerAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--c-accent-dim);
+  border: 1px solid var(--c-accent-glow);
+  color: var(--c-accent);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playerOnline {
+  font-size: 12px;
+  color: var(--c-text3);
+  margin-left: 4px;
+}
+
+/* ── CTA bottom ── */
+.statsRow {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.statNum {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800;
+  color: var(--c-accent);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 13px;
+  color: var(--c-text2);
+  letter-spacing: 0.2px;
+}
+
+.ctaTitle {
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--c-text);
+}
+
+.ctaSub {
+  font-size: 15px;
+  color: var(--c-text2);
+  margin: 0 0 28px;
+}
+
+.ctaCards {
+  display: flex;
+  gap: 14px;
+  margin: 0 0 28px;
+  justify-content: center;
+}
+
+.ctaCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  min-width: 110px;
+}
+
+.ctaCardIcon { font-size: 24px; }
+
+.ctaCardText {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.ctaCardSub {
+  font-size: 11px;
+  color: var(--c-text2);
+}
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .platformLayout { grid-template-columns: 1fr; gap: 32px; }
+  .playerMockup { max-width: 480px; margin: 0 auto; }
+}
+
+@media (max-width: 700px) {
+  .nav { padding: 0 20px; }
+  .hero { padding: 70px 20px 80px; }
+  .section { padding: 0 20px; }
+  .steps { grid-template-columns: 1fr; }
+  .features { grid-template-columns: 1fr 1fr; }
+  .navActions .navBtn:first-child { display: none; }
+  .statsRow { gap: 32px; }
+}
+
+@media (max-width: 480px) {
+  .features { grid-template-columns: 1fr; }
+}

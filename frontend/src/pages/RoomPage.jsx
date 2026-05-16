@@ -53,7 +53,7 @@ export default function RoomPage() {
   const [reactions, setReactions] = useState([]);
   const [queue, setQueue] = useState([]);
   const [timeline, setTimeline] = useState([]);
-  const [chatTab, setChatTab] = useState("chat"); // "chat" | "actions" | "queue"
+  const [chatTab, setChatTab] = useState("chat"); // "chat" | "actions" | "queue" | "users"
   const [chatIndicator, setChatIndicator] = useState({ left: 0, width: 0 });
   const chatTabRefs = useRef({});
   const [isSyncing, setIsSyncing] = useState(false);
@@ -559,7 +559,7 @@ export default function RoomPage() {
     });
   }, [queue]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Автоматический sync-heartbeat каждые 5 секунд (только админ)
+  // Автоматический sync-heartbeat каждые 3 секунды (только админ)
   useEffect(() => {
     syncIntervalRef.current = setInterval(() => {
       if (isAdminRef.current && isPlayingRef.current) {
