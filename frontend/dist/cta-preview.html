@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTA варианты</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #fff;
+    padding: 32px 24px;
+  }
+
+  h1 { text-align: center; font-size: 18px; color: #9DB2BF; margin-bottom: 32px; font-weight: 500; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .variant { border-radius: 16px; overflow: hidden; }
+  .variant-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9DB2BF;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .slide {
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 32px;
+    text-align: center;
+    flex-direction: column;
+  }
+
+  /* ── Shared ── */
+  .btn {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 10px;
+    background: #DFA06E;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: default;
+    box-shadow: 0 4px 16px rgba(223,160,110,0.35);
+  }
+
+  /* ══ Вариант 1 — Буллеты ══ */
+  .v1 { background: #EDE8D8; }
+  .v1 .title { font-size: 22px; font-weight: 800; color: #27374D; margin-bottom: 20px; }
+  .v1 .bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .v1 .bullets li {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: #526D82; text-align: left;
+  }
+  .v1 .bullets li::before {
+    content: "✓";
+    width: 22px; height: 22px;
+    background: rgba(223,160,110,0.18);
+    border: 1px solid rgba(223,160,110,0.4);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #DFA06E; font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ══ Вариант 2 — Три карточки ══ */
+  .v2 { background: #EDE8D8; flex-direction: column; gap: 0; }
+  .v2 .title { font-size: 20px; font-weight: 800; color: #27374D; margin-bottom: 18px; }
+  .v2 .cards { display: flex; gap: 12px; margin-bottom: 22px; }
+  .v2 .card {
+    flex: 1;
+    background: #F9F5EC;
+    border: 1px solid #D4CFBF;
+    border-radius: 10px;
+    padding: 14px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .v2 .card-icon { font-size: 22px; }
+  .v2 .card-text { font-size: 11px; font-weight: 700; color: #27374D; line-height: 1.3; }
+  .v2 .card-sub { font-size: 10px; color: #9DB2BF; }
+
+  /* ══ Вариант 3 — Крупный текст ══ */
+  .v3 { background: #EDE8D8; }
+  .v3 .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: #DFA06E; margin-bottom: 12px;
+  }
+  .v3 .title {
+    font-size: 28px; font-weight: 900; color: #27374D;
+    letter-spacing: -0.8px; line-height: 1.2; margin-bottom: 10px;
+  }
+  .v3 .title span { color: #DFA06E; }
+  .v3 .sub { font-size: 13px; color: #526D82; margin-bottom: 24px; line-height: 1.6; }
+
+  /* ══ Вариант 4 — Тёмный фон ══ */
+  .v4 { background: #27374D; border-color: rgba(255,255,255,0.06) !important; }
+  .v4 .title {
+    font-size: 26px; font-weight: 800; color: #EBF1F5;
+    letter-spacing: -0.5px; margin-bottom: 10px;
+  }
+  .v4 .sub { font-size: 14px; color: #9DB2BF; margin-bottom: 28px; }
+  .v4 .btn { box-shadow: 0 4px 20px rgba(223,160,110,0.5); }
+  .v4 .deco {
+    position: absolute;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(223,160,110,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .v4 .deco1 { top: -80px; left: -60px; }
+  .v4 .deco2 { bottom: -80px; right: -60px; }
+  .v4-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
+  .v4 { position: relative; overflow: hidden; }
+</style>
+</head>
+<body>
+
+<h1>Варианты последнего слайда — выбери один</h1>
+
+<div class="grid">
+
+  <!-- Вариант 1 -->
+  <div class="variant">
+    <div class="variant-label">Вариант 1 — Буллеты</div>
+    <div class="slide v1">
+      <div class="title">Готовы смотреть вместе?</div>
+      <ul class="bullets">
+        <li>Бесплатно — навсегда</li>
+        <li>Без установки, прямо в браузере</li>
+        <li>Приватные комнаты по ссылке</li>
+        <li>Синхронизация в реальном времени</li>
+      </ul>
+      <div class="btn">Создать аккаунт</div>
+    </div>
+  </div>
+
+  <!-- Вариант 2 -->
+  <div class="variant">
+    <div class="variant-label">Вариант 2 — Три карточки</div>
+    <div class="slide v2">
+      <div class="title">Готовы смотреть вместе?</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🆓</div>
+          <div class="card-text">Бесплатно</div>
+          <div class="card-sub">навсегда</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <div class="card-text">В браузере</div>
+          <div class="card-sub">без установки</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <div class="card-text">До 50 чел.</div>
+          <div class="card-sub">в комнате</div>
+        </div>
+      </div>
+      <div class="btn">Создать аккаунт</div>
+    </div>
+  </div>
+
+  <!-- Вариант 3 -->
+  <div class="variant">
+    <div class="variant-label">Вариант 3 — Крупный текст</div>
+    <div class="slide v3">
+      <div class="eyebrow">🌊 Surf Videos</div>
+      <div class="title">Смотри видео<br /><span>вместе, не одному</span></div>
+      <div class="sub">Платформа только запустилась —<br />присоединяйся одним из первых</div>
+      <div class="btn">Создать аккаунт</div>
+    </div>
+  </div>
+
+  <!-- Вариант 4 -->
+  <div class="variant">
+    <div class="variant-label">Вариант 4 — Тёмный финал</div>
+    <div class="slide v4">
+      <div class="deco deco1"></div>
+      <div class="deco deco2"></div>
+      <div class="v4-inner">
+        <div class="title">Готовы смотреть вместе?</div>
+        <div class="sub">Регистрация бесплатна и занимает меньше минуты</div>
+        <div class="btn">Создать аккаунт</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

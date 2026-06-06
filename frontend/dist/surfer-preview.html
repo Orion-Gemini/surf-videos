@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Серфер — варианты</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 32px 24px 48px;
+}
+h1 { text-align: center; font-size: 18px; color: #9DB2BF; margin-bottom: 6px; font-weight: 500; }
+.hint { text-align: center; font-size: 13px; color: #526D82; margin-bottom: 32px; }
+
+.variants { display: flex; flex-direction: column; gap: 40px; max-width: 900px; margin: 0 auto; }
+
+.variant-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #9DB2BF;
+  margin-bottom: 10px; padding-left: 4px;
+}
+
+.slide {
+  height: 420px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #EDE8D8;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+}
+.badge {
+  display: inline-block; padding: 5px 14px; border-radius: 100px;
+  background: rgba(223,160,110,0.15); border: 1px solid rgba(223,160,110,0.3);
+  color: #DFA06E; font-size: 12px; font-weight: 600; margin-bottom: 16px;
+}
+.h-title { font-size: 36px; font-weight: 800; color: #27374D; letter-spacing: -1px; line-height: 1.15; margin-bottom: 10px; }
+.h-title span { color: #DFA06E; }
+.h-sub { font-size: 14px; color: #526D82; margin-bottom: 20px; }
+.btn {
+  display: inline-block; padding: 12px 26px; border-radius: 10px;
+  background: #DFA06E; color: #fff; font-size: 14px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(223,160,110,0.4); cursor: default;
+}
+
+/* shared waves */
+.waves-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 120px; pointer-events: none;
+}
+.w1 { position: absolute; bottom: 0; left: 0; width: 200%; height: 100%; animation: wScroll 7s linear infinite; }
+.w2 { position: absolute; bottom: 0; left: 0; width: 200%; height: 70%; animation: wScroll 11s linear infinite reverse; opacity: 0.6; }
+@keyframes wScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ════════════════════════════════════
+   ВАРИАНТ 1 — Силуэт серфера + экран
+════════════════════════════════════ */
+.v1-screen {
+  position: absolute;
+  right: 80px; top: 40px;
+  width: 220px; height: 140px;
+  background: rgba(39,55,77,0.75);
+  border-radius: 12px;
+  border: 1px solid rgba(157,178,191,0.2);
+  backdrop-filter: blur(4px);
+  z-index: 4;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  animation: screenFloat 4s ease-in-out infinite;
+}
+@keyframes screenFloat {
+  0%,100% { transform: translateY(0) rotate(1deg); }
+  50%      { transform: translateY(-8px) rotate(-0.5deg); }
+}
+.v1-screen-body {
+  flex: 1; background: #0f1f3a;
+  display: flex; align-items: center; justify-content: center;
+}
+.v1-play {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(223,160,110,0.85);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff; padding-left: 2px;
+}
+.v1-screen-bar {
+  padding: 6px 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.v1-progress { flex: 1; height: 2px; background: rgba(255,255,255,0.15); border-radius: 1px; overflow: hidden; }
+.v1-fill { width: 40%; height: 100%; background: #DFA06E; }
+.v1-time { font-size: 9px; color: rgba(255,255,255,0.4); font-family: monospace; }
+
+/* Серфер — CSS силуэт */
+.surfer-wrap {
+  position: absolute;
+  bottom: 82px; left: -80px;
+  z-index: 6;
+  animation: surferRide 14s linear infinite;
+}
+@keyframes surferRide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(1000px); }
+}
+.surfer {
+  position: relative;
+  animation: surferBob 0.8s ease-in-out infinite alternate;
+}
+@keyframes surferBob {
+  from { transform: rotate(-3deg) translateY(0); }
+  to   { transform: rotate(3deg) translateY(-4px); }
+}
+.board {
+  width: 70px; height: 10px; background: #DFA06E;
+  border-radius: 20px 5px 5px 20px;
+  position: relative;
+}
+.body-surfer {
+  position: absolute; bottom: 8px; left: 18px;
+  width: 10px; height: 20px; background: #27374D;
+  border-radius: 5px 5px 2px 2px;
+}
+.head-surfer {
+  position: absolute; bottom: 26px; left: 20px;
+  width: 10px; height: 10px; background: #DFA06E;
+  border-radius: 50%;
+}
+.arm-surfer {
+  position: absolute; bottom: 16px; left: 12px;
+  width: 16px; height: 4px; background: #27374D;
+  border-radius: 2px; transform: rotate(-30deg);
+}
+.spray {
+  position: absolute; bottom: 2px; right: -14px;
+  display: flex; gap: 3px; align-items: flex-end;
+}
+.spray span {
+  background: rgba(82,109,130,0.5);
+  border-radius: 50%;
+  animation: sprayAnim 0.4s ease-in-out infinite alternate;
+}
+.spray span:nth-child(1) { width:4px; height:8px; animation-delay:0s; }
+.spray span:nth-child(2) { width:3px; height:5px; animation-delay:0.1s; }
+.spray span:nth-child(3) { width:2px; height:3px; animation-delay:0.2s; }
+@keyframes sprayAnim {
+  from { transform: translateY(0) scaleX(1); opacity: 0.8; }
+  to   { transform: translateY(-4px) scaleX(1.3); opacity: 0.3; }
+}
+
+/* ════════════════════════════════════
+   ВАРИАНТ 2 — SVG серфер + иконки фич
+════════════════════════════════════ */
+.v2 { background: #EDE8D8; }
+
+.feature-icons {
+  position: absolute; inset: 0; pointer-events: none; z-index: 4;
+}
+.ficon {
+  position: absolute;
+  width: 42px; height: 42px; border-radius: 12px;
+  background: var(--c-surface, rgba(249,245,236,0.9));
+  border: 1px solid rgba(212,207,191,0.8);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  animation: iconFloat ease-in-out infinite alternate;
+}
+.ficon:nth-child(1) { top:14%; left:8%;  animation-duration:3.1s; animation-delay:0s; }
+.ficon:nth-child(2) { top:10%; left:25%; animation-duration:2.7s; animation-delay:-0.8s; }
+.ficon:nth-child(3) { top:18%; right:22%;animation-duration:3.5s; animation-delay:-1.2s; }
+.ficon:nth-child(4) { top:12%; right:8%; animation-duration:2.9s; animation-delay:-0.5s; }
+.ficon:nth-child(5) { top:42%; left:5%;  animation-duration:3.3s; animation-delay:-1.8s; }
+.ficon:nth-child(6) { top:40%; right:5%; animation-duration:2.8s; animation-delay:-0.3s; }
+@keyframes iconFloat {
+  from { transform: translateY(0) rotate(-2deg); }
+  to   { transform: translateY(-10px) rotate(2deg); }
+}
+
+.surfer2-wrap {
+  position: absolute; bottom: 90px; left: -100px; z-index: 6;
+  animation: surferRide2 16s linear infinite;
+}
+@keyframes surferRide2 { from { transform: translateX(0); } to { transform: translateX(1050px); } }
+
+/* ════════════════════════════════════
+   ВАРИАНТ 3 — Серфер на волне-плеере
+════════════════════════════════════ */
+.v3 { background: #EDE8D8; }
+
+.player-wave-wrap {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 160px;
+  pointer-events: none; z-index: 3;
+}
+.player-wave-svg {
+  position: absolute; bottom: 0; left: 0; width: 200%; height: 100%;
+  animation: wScroll 8s linear infinite;
+}
+.player-wave-svg2 {
+  position: absolute; bottom: 0; left: 0; width: 200%; height: 60%;
+  animation: wScroll 12s linear infinite reverse;
+  opacity: 0.5;
+}
+
+/* Полоса плеера на волне */
+.player-bar-wave {
+  position: absolute; bottom: 28px; left: 0; right: 0; z-index: 7;
+  display: flex; align-items: center; gap: 12px; padding: 0 32px;
+}
+.pb-progress {
+  flex: 1; height: 4px; background: rgba(255,255,255,0.2);
+  border-radius: 2px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+.pb-fill { width: 45%; height: 100%; background: #fff; border-radius: 2px; }
+.pb-ctrl { font-size: 14px; color: rgba(255,255,255,0.85); }
+.pb-time { font-size: 10px; color: rgba(255,255,255,0.6); font-family: monospace; margin-left: auto; }
+
+.surfer3-wrap {
+  position: absolute; z-index: 8; bottom: 82px; left: -80px;
+  animation: surferRide 13s linear infinite;
+}
+</style>
+</head>
+<body>
+
+<h1>Серфер — варианты для первого слайда</h1>
+<p class="hint">Все три живые — смотри в движении</p>
+
+<div class="variants">
+
+  <!-- ВАРИАНТ 1 -->
+  <div>
+    <div class="variant-label">Вариант 1 — CSS-силуэт серфера + экран плеера</div>
+    <div class="slide v1">
+
+      <!-- Плавающий экран -->
+      <div class="v1-screen">
+        <div class="v1-screen-body"><div class="v1-play">▶</div></div>
+        <div class="v1-screen-bar">
+          <div class="v1-progress"><div class="v1-fill"></div></div>
+          <div class="v1-time">12:34</div>
+        </div>
+      </div>
+
+      <!-- Серфер -->
+      <div class="surfer-wrap">
+        <div class="surfer">
+          <div class="board"></div>
+          <div class="body-surfer"></div>
+          <div class="head-surfer"></div>
+          <div class="arm-surfer"></div>
+          <div class="spray">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Волны -->
+      <div class="waves-bottom">
+        <svg class="w1" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,55 C180,100 360,10 540,55 C720,100 900,10 1080,55 C1260,100 1440,10 1440,55 L1440,120 L0,120 Z" fill="rgba(82,109,130,0.15)"/>
+        </svg>
+        <svg class="w2" viewBox="0 0 1440 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,40 C200,75 400,5 600,40 C800,75 1000,5 1200,40 C1320,58 1400,22 1440,40 L1440,90 L0,90 Z" fill="rgba(223,160,110,0.12)"/>
+        </svg>
+      </div>
+
+      <div class="hero-content">
+        <div class="badge">🌊 Совместный просмотр</div>
+        <div class="h-title">Смотрите видео<br/><span>вместе с друзьями</span></div>
+        <div class="h-sub">Создайте комнату и наслаждайтесь синхронным просмотром</div>
+        <div class="btn">Создать комнату</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВАРИАНТ 2 -->
+  <div>
+    <div class="variant-label">Вариант 2 — SVG серфер + иконки фич вокруг</div>
+    <div class="slide v2">
+
+      <!-- Иконки фич -->
+      <div class="feature-icons">
+        <div class="ficon">▶</div>
+        <div class="ficon">💬</div>
+        <div class="ficon">🎉</div>
+        <div class="ficon">📋</div>
+        <div class="ficon">🛡️</div>
+        <div class="ficon">✋</div>
+      </div>
+
+      <!-- Серфер (тот же CSS) -->
+      <div class="surfer2-wrap">
+        <div class="surfer">
+          <div class="board"></div>
+          <div class="body-surfer"></div>
+          <div class="head-surfer"></div>
+          <div class="arm-surfer"></div>
+          <div class="spray"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- Волны -->
+      <div class="waves-bottom">
+        <svg class="w1" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,55 C180,100 360,10 540,55 C720,100 900,10 1080,55 C1260,100 1440,10 1440,55 L1440,120 L0,120 Z" fill="rgba(82,109,130,0.15)"/>
+        </svg>
+        <svg class="w2" viewBox="0 0 1440 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,40 C200,75 400,5 600,40 C800,75 1000,5 1200,40 C1320,58 1400,22 1440,40 L1440,90 L0,90 Z" fill="rgba(223,160,110,0.12)"/>
+        </svg>
+      </div>
+
+      <div class="hero-content">
+        <div class="badge">🌊 Совместный просмотр</div>
+        <div class="h-title">Смотрите видео<br/><span>вместе с друзьями</span></div>
+        <div class="h-sub">Создайте комнату и наслаждайтесь синхронным просмотром</div>
+        <div class="btn">Создать комнату</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВАРИАНТ 3 -->
+  <div>
+    <div class="variant-label">Вариант 3 — Серфер едет по волне-плееру</div>
+    <div class="slide v3">
+
+      <!-- Волна-плеер -->
+      <div class="player-wave-wrap">
+        <svg class="player-wave-svg" viewBox="0 0 1440 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,70 C180,130 360,15 540,70 C720,130 900,15 1080,70 C1260,130 1440,15 1440,70 L1440,160 L0,160 Z" fill="#27374D"/>
+        </svg>
+        <svg class="player-wave-svg2" viewBox="0 0 1440 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,45 C200,85 400,5 600,45 C800,85 1000,5 1200,45 C1320,65 1400,25 1440,45 L1440,100 L0,100 Z" fill="#304560"/>
+        </svg>
+      </div>
+
+      <!-- Контролы плеера на волне -->
+      <div class="player-bar-wave">
+        <span class="pb-ctrl">⏮</span>
+        <span class="pb-ctrl">⏸</span>
+        <span class="pb-ctrl">⏭</span>
+        <div class="pb-progress"><div class="pb-fill"></div></div>
+        <span class="pb-time">12:34 / 45:00</span>
+        <span class="pb-ctrl">🔊</span>
+      </div>
+
+      <!-- Серфер верхом на волне -->
+      <div class="surfer3-wrap">
+        <div class="surfer">
+          <div class="board" style="background:#DFA06E;"></div>
+          <div class="body-surfer"></div>
+          <div class="head-surfer"></div>
+          <div class="arm-surfer"></div>
+          <div class="spray"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <div class="hero-content">
+        <div class="badge">🌊 Совместный просмотр</div>
+        <div class="h-title">Смотрите видео<br/><span>вместе с друзьями</span></div>
+        <div class="h-sub">Создайте комнату и наслаждайтесь синхронным просмотром</div>
+        <div class="btn">Создать комнату</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
