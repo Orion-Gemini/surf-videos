@@ -155,16 +155,17 @@ async def handle_player_event(event: dict, room_id: int, user: User, db: AsyncSe
     if action not in allowed:
         return
 
-    # sync — тихое обновление позиции без смены статуса воспроизведения
+    # sync — принудительная синхронизация позиции (работает и на паузе, и при воспроизведении)
     if action == "sync":
         current_state = await get_player_state(room_id)
-        if not current_state or not current_state.get("is_playing"):
+        if not current_state:
             return
+        is_playing = current_state.get("is_playing", False)
         updated = {
             **current_state,
             "position": event.get("position", current_state.get("position", 0)),
             "played_at": time.time(),
-            "action": "play",
+            "action": "sync",
         }
         await save_player_state(room_id, updated)
         await manager.broadcast(room_id, {
@@ -173,7 +174,7 @@ async def handle_player_event(event: dict, room_id: int, user: User, db: AsyncSe
             "position": updated["position"],
             "played_at": updated["played_at"],
             "video_id": updated["video_id"],
-            "is_playing": True,
+            "is_playing": is_playing,
         }, exclude_user_id=user.id)
         return
 

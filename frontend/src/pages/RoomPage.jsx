@@ -191,18 +191,15 @@ export default function RoomPage() {
       setCurrentTime(safePos);
     } else if (action === "sync") {
       let seekPos = safePos;
-      if (playedAt && isFinite(Number(playedAt))) {
+      // Дрейф учитываем только если видео играет — при паузе позиция не меняется
+      if (data.is_playing && playedAt && isFinite(Number(playedAt))) {
         seekPos = safePos + Math.max(0, Date.now() / 1000 - Number(playedAt));
       }
       if (!isFinite(seekPos)) seekPos = safePos;
-      // Только если рассинхрон значительный (> 0.5с), чтобы не дёргать при heartbeat
-      const drift = Math.abs(seekPos - currentTimeRef.current);
-      if (drift > 0.5) {
-        ctrl.seekTo(seekPos);
-        currentTimeRef.current = seekPos;
-        setCurrentTime(seekPos);
-        if (isPlayingRef.current) startTimer(seekPos);
-      }
+      ctrl.seekTo(seekPos);
+      currentTimeRef.current = seekPos;
+      setCurrentTime(seekPos);
+      if (isPlayingRef.current) startTimer(seekPos);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
